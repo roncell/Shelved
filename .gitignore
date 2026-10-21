@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+
+# Secrets (TMDB key, Phase 6) — commit Secrets.example.xcconfig instead
+Secrets.xcconfig

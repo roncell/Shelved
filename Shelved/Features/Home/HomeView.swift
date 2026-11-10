@@ -6,8 +6,8 @@ struct HomeView: View {
     var body: some View {
         List {
             Section("Currently reading") {
-                // Proves Home can push the same routes Search does.
-                Button("Dune") { router.push(.itemDetail(MediaID(rawValue: "dune"))) }
+                // A real Open Library work ID. Replaced by your library in Phase 4/8.
+                Button("Dune") { router.push(.itemDetail(.openLibraryWork("OL893415W"))) }
             }
         }
         .navigationTitle("Home")

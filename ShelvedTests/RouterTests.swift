@@ -5,8 +5,8 @@ import Testing
 struct RouterTests {
     @Test func pushIncreasesDepth() {
         let router = Router()
-        router.push(.itemDetail(MediaID(rawValue: "a")))
-        router.push(.creator(CreatorID(rawValue: "b")))
+        router.push(.itemDetail(.openLibraryWork("a")))
+        router.push(.creator(.openLibraryAuthor("b")))
         #expect(router.depth == 2)
     }
 
@@ -19,9 +19,9 @@ struct RouterTests {
     @Test func popToRootClearsStack() {
         let router = Router()
         router.setStack([
-            .itemDetail(MediaID(rawValue: "a")),
-            .creator(CreatorID(rawValue: "b")),
-            .itemDetail(MediaID(rawValue: "c")),
+            .itemDetail(.openLibraryWork("a")),
+            .creator(.openLibraryAuthor("b")),
+            .itemDetail(.openLibraryWork("c")),
         ])
         router.popToRoot()
         #expect(router.depth == 0)
@@ -33,7 +33,7 @@ struct TabCoordinatorTests {
     @Test func reTappingSelectedTabPopsToRoot() {
         let coordinator = TabCoordinator()
         coordinator.select(.search)
-        coordinator.router(for: .search).push(.itemDetail(MediaID(rawValue: "a")))
+        coordinator.router(for: .search).push(.itemDetail(.openLibraryWork("a")))
 
         coordinator.select(.search)
 
@@ -43,7 +43,7 @@ struct TabCoordinatorTests {
     @Test func switchingTabsKeepsEachStack() {
         let coordinator = TabCoordinator()
         coordinator.select(.search)
-        coordinator.router(for: .search).push(.itemDetail(MediaID(rawValue: "a")))
+        coordinator.router(for: .search).push(.itemDetail(.openLibraryWork("a")))
 
         coordinator.select(.library)
         coordinator.select(.search)

@@ -62,18 +62,26 @@ Keep the domain independent of any API's JSON shape. Map DTOs → domain models 
 
 ```swift
 enum MediaKind: String, Codable { case book, film, show }
+enum MediaID   { case openLibraryWork(String) }      // + .tmdb(MediaKind, Int) in Phase 6
+enum CreatorID { case openLibraryAuthor(String) }
 
-struct MediaItem: Identifiable, Hashable {
-    let id: MediaID          // e.g. .openLibrary("OL123W") / .tmdb(.film, 550)
-    let kind: MediaKind
-    let title: String
-    let creators: [CreatorSummary]
-    let coverURL: URL?
-    let year: Int?
-    let summary: String?
+struct MediaItem {      // search results / lists
+    let id: MediaID, kind: MediaKind, title: String
+    let creators: [CreatorSummary], coverURL: URL?, year: Int?
 }
+struct MediaDetail {    // detail screen: MediaItem fields + summary, subjects
+    ...
+    let summary: String?, subjects: [String]
+}
+struct CreatorSummary { let id: CreatorID; let name: String }
+struct SearchPage { let items: [MediaItem]; let hasMore: Bool }
 
-struct Creator: Identifiable, Hashable { /* author / director / actor */ }
+protocol MediaCatalog {   // Data/ — what ViewModels depend on
+    func search(query: String, page: Int) async throws -> SearchPage
+    func detail(for id: MediaID) async throws -> MediaDetail
+}
+// OpenLibraryCatalog (Networking/OpenLibrary) is the real implementation;
+// PreviewCatalog / StubCatalog are fakes for previews and tests.
 
 // Persisted (SwiftData @Model)
 LibraryEntry  — mediaID, shelf, rating, review, progress, startedAt, finishedAt
@@ -108,6 +116,12 @@ enum Loadable<Value> { case idle, loading, loaded(Value), failed(Error) }
 ```
 Every screen must handle empty, loading, error, and offline states.
 
+### Concurrency
+- Swift 6 language mode, strict concurrency **Complete**. Works with either "Default Actor Isolation" setting (new Xcode projects default to `MainActor`).
+- UI-facing classes (Routers, ViewModels) are `@MainActor`.
+- Plain values and networking types (domain models, DTOs, `Endpoint`, `HTTPClient`, catalogs, mappers) are marked `nonisolated` and `Sendable`, so they can be decoded and passed between threads regardless of the default isolation.
+- Async work is tied to view lifetime with `.task` / `.task(id:)`, so leaving a screen cancels its requests. On cancellation, don't show an error.
+
 ## Project structure (target)
 ```
 Shelved/                     # App target: entry point, tab shell, DI wiring
@@ -140,7 +154,7 @@ ShelvedUITests/
 - ViewModels: `<Screen>ViewModel`, marked `@MainActor @Observable`.
 - No force unwraps outside tests.
 - `async`/`await` only. No completion handlers, no Combine unless there's a specific reason.
-- Use `#Preview` for every view, with mock data.
+- Use `#Preview` for every view, with mock data (`PreviewCatalog`).
 - Strings in a String Catalog from day one.
 - Accessibility: every interactive element has a label, and layouts support Dynamic Type.
 - Commit messages: `feat:`, `fix:`, `refactor:`, `test:`, `chore:`.
@@ -148,19 +162,19 @@ ShelvedUITests/
 ## Roadmap
 
 ### Phase 1 — App shell & navigation
-- [ ] Create the Xcode project (SwiftUI, Swift 6, iOS 17+)
-- [ ] `TabView` with 5 tabs and placeholder screens
-- [ ] `Route` enum + `Router` per tab, `destination(for:)` builder
-- [ ] Push placeholder detail → creator → detail to prove unbounded navigation works
-- [ ] Re-tap the tab to pop to root
+- [x] Create the Xcode project (SwiftUI, Swift 6, iOS 17+)
+- [x] `TabView` with 5 tabs and placeholder screens
+- [x] `Route` enum + `Router` per tab, `destination(for:)` builder
+- [x] Push placeholder detail → creator → detail to prove unbounded navigation works
+- [x] Re-tap the tab to pop to root
 - **Learn:** `NavigationStack`, `NavigationPath`, value-based navigation, why routers beat inline `NavigationLink`
 
 ### Phase 2 — Networking & search (books)
-- [ ] Generic `HTTPClient` + `Endpoint` type
-- [ ] Open Library search, work detail, and author endpoints, with DTOs
-- [ ] DTO → `MediaItem` mapping
-- [ ] Search screen: debounced query, results list, pagination, `Loadable` states
-- [ ] Detail screen with cover images
+- [x] Generic `HTTPClient` + `Endpoint` type
+- [x] Open Library search, work detail, and author endpoints, with DTOs
+- [x] DTO → `MediaItem` mapping
+- [x] Search screen: debounced query, results list, pagination, `Loadable` states
+- [x] Detail screen with cover images
 - **Learn:** async/await, `Codable`, structured concurrency, task cancellation on new queries, separating DTOs from the domain
 
 ### Phase 3 — Detail & creator flow
@@ -221,3 +235,9 @@ Record notable architecture decisions here as the project evolves.
 | 2026-10-18 | MVVM + Router + Repository, SwiftData, no third-party deps to start | Learn the fundamentals before reaching for frameworks |
 | 2026-10-18 | Books (Open Library) before Films/TV (TMDB) | No API key needed; tests the abstraction when the second source arrives |
 | 2026-10-20 | `TabCoordinator` owns selected tab + one `Router` per tab; routes carry IDs only | Per-tab stacks survive tab switches; re-tap pop-to-root is testable without UI |
+| 2026-10-30 | `MediaID`/`CreatorID` are enums with a case per source | Source is part of identity; adding TMDB makes the compiler flag every switch |
+| 2026-10-30 | Separate `MediaItem` (lists) and `MediaDetail` (detail) | Search results lack summary/subjects; avoids "sometimes nil" fields |
+| 2026-10-30 | `MediaCatalog` protocol injected via view `init` default argument | Testable now; replaced by an Environment `Dependencies` container in Phase 5 |
+| 2026-10-30 | Debounce with `.task(id: query)` + `Task.sleep`, no Combine | SwiftUI cancels the stale task on each keystroke; cancellation propagates to URLSession |
+| 2026-10-30 | `AsyncImage` for covers, wrapped in `CoverImage` | No dependency yet; no disk cache, so swap the loader inside `CoverImage` if it becomes a problem |
+| 2026-11-06 | Search-as-you-type: last word sent as a prefix (`du` → `du*`) in `OpenLibraryAPI.prefixQuery` | Open Library matches whole words; the wildcard is Open Library query syntax, so it lives in the Open Library layer, not the ViewModel |

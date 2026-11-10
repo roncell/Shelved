@@ -1,7 +1,96 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "About" : {
 
+    },
+    "Author" : {
+
+    },
+    "Author pages arrive in Phase 3" : {
+
+    },
+    "By" : {
+
+    },
+    "Charts arrive in Phase 8." : {
+
+    },
+    "Couldn't load results" : {
+
+    },
+    "Couldn't load this book" : {
+
+    },
+    "Currently reading" : {
+
+    },
+    "Dune" : {
+
+    },
+    "Find books by title or author." : {
+
+    },
+    "Home" : {
+
+    },
+    "Library" : {
+
+    },
+    "Load More" : {
+
+    },
+    "Open Library is having trouble right now. Try again in a bit." : {
+
+    },
+    "Opens details" : {
+
+    },
+    "Search" : {
+
+    },
+    "Search Open Library" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Settings arrive in Phase 8." : {
+
+    },
+    "Shows other works by this author" : {
+
+    },
+    "Something went wrong. Try again." : {
+
+    },
+    "Stats" : {
+
+    },
+    "Subjects" : {
+
+    },
+    "The request timed out. Try again." : {
+
+    },
+    "This screen will list the author's other works." : {
+
+    },
+    "Title or author" : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Untitled" : {
+
+    },
+    "You're offline. Check your connection and try again." : {
+
+    },
+    "Your shelves arrive in Phase 4." : {
+
+    }
   },
   "version" : "1.0"
 }

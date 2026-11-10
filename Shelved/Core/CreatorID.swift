@@ -1,6 +1,7 @@
 import Foundation
 
 /// Identifies an author, director, or actor.
-struct CreatorID: Hashable, Sendable {
-    let rawValue: String
+nonisolated enum CreatorID: Hashable, Sendable {
+    /// An Open Library author ID, e.g. "OL79034A".
+    case openLibraryAuthor(String)
 }

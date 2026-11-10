@@ -2,9 +2,14 @@ import Foundation
 
 /// Identifies a book, film, or show across sources.
 ///
-/// Phase 1: a plain string wrapper so routes have something to carry.
-/// Phase 2/6 will turn this into `.openLibrary(String)` / `.tmdb(kind, Int)`.
-/// Because routes only ever carry IDs, that change won't touch navigation code.
-struct MediaID: Hashable, Sendable {
-    let rawValue: String
+/// An enum (not a bare String) so the source is part of the identity:
+/// an Open Library work and a TMDB film can never be confused.
+/// Phase 6 adds `case tmdb(MediaKind, Int)`, and the compiler will point
+/// at every `switch` that needs to handle it.
+///
+/// `nonisolated`: these are plain values used from any thread (networking,
+/// mapping, UI). See "Concurrency" in CLAUDE.md.
+nonisolated enum MediaID: Hashable, Sendable {
+    /// An Open Library work ID, e.g. "OL893415W".
+    case openLibraryWork(String)
 }

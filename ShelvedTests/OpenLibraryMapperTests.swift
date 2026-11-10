@@ -55,6 +55,58 @@ struct OpenLibraryMapperTests {
         #expect(detail.year == 1965)
     }
 
+    @Test func detailMapsSubjectListsAndDropsBadLinks() throws {
+        let work = try decode(OLWork.self, """
+        {"key": "/works/OL1W", "title": "Dune",
+         "subject_places": ["Arrakis"], "subject_people": ["Paul Atreides"],
+         "links": [
+            {"title": "NYT review", "url": "https://nytimes.com/dune"},
+            {"title": "", "url": "https://example.com"},
+            {"title": "Broken", "url": "not a url"}
+         ]}
+        """)
+        let detail = OpenLibraryMapper.detail(from: work, id: .openLibraryWork("OL1W"), creators: [])
+
+        #expect(detail.places == ["Arrakis"])
+        #expect(detail.characters == ["Paul Atreides"])
+        #expect(detail.timePeriods.isEmpty)
+        #expect(detail.links.map(\.title) == ["NYT review"])
+    }
+
+    @Test func mapsAuthorToCreatorDetail() throws {
+        let author = try decode(OLAuthor.self, """
+        {"name": "Frank Herbert", "birth_date": "8 October 1920", "death_date": "11 February 1986",
+         "bio": {"type": "/type/text", "value": "American author."}, "photos": [-1, 14852808]}
+        """)
+
+        let creator = OpenLibraryMapper.creatorDetail(from: author, authorID: "OL79034A")
+
+        #expect(creator.id == .openLibraryAuthor("OL79034A"))
+        #expect(creator.name == "Frank Herbert")
+        #expect(creator.bio == "American author.")
+        #expect(creator.birthDate == "8 October 1920")
+        #expect(creator.photoURL?.absoluteString == "https://covers.openlibrary.org/a/id/14852808-L.jpg")
+    }
+
+    @Test func creatorDetailFallsBackWhenNameMissing() throws {
+        let author = try decode(OLAuthor.self, #"{"personal_name": "Herbert, Frank"}"#)
+        #expect(OpenLibraryMapper.creatorDetail(from: author, authorID: "X").name == "Herbert, Frank")
+
+        let nameless = try decode(OLAuthor.self, "{}")
+        #expect(OpenLibraryMapper.creatorDetail(from: nameless, authorID: "X").name == "Unknown Author")
+    }
+
+    @Test func recognizesRedirectRecords() throws {
+        let redirect = try decode(OLWork.self, """
+        {"key": "/works/OL893415W", "type": {"key": "/type/redirect"}, "location": "/works/OL893414W"}
+        """)
+        let real = try decode(OLWork.self, """
+        {"key": "/works/OL893414W", "type": {"key": "/type/work"}, "title": "Dune"}
+        """)
+        #expect(redirect.redirectKey == "/works/OL893414W")
+        #expect(real.redirectKey == nil)
+    }
+
     // Parameterized test: one test function, run once per argument.
     @Test(arguments: [
         ("1965", 1965),

@@ -8,4 +8,8 @@ import Foundation
 nonisolated protocol MediaCatalog: Sendable {
     func search(query: String, page: Int) async throws -> SearchPage
     func detail(for id: MediaID) async throws -> MediaDetail
+    func creator(for id: CreatorID) async throws -> CreatorDetail
+    /// A creator's works, most popular first. Returns `SearchPage` because
+    /// it's the same "page of items + is there more?" shape as search.
+    func works(by id: CreatorID, page: Int) async throws -> SearchPage
 }

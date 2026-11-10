@@ -5,4 +5,6 @@ nonisolated enum NetworkError: Error {
     case invalidResponse
     case httpStatus(Int)
     case decoding(any Error)
+    /// A record kept redirecting (merged into a merged record into…).
+    case tooManyRedirects
 }

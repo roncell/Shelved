@@ -10,6 +10,6 @@ import Foundation
 /// `nonisolated`: these are plain values used from any thread (networking,
 /// mapping, UI). See "Concurrency" in CLAUDE.md.
 nonisolated enum MediaID: Hashable, Sendable {
-    /// An Open Library work ID, e.g. "OL893415W".
+    /// An Open Library work ID, e.g. "OL893414W".
     case openLibraryWork(String)
 }

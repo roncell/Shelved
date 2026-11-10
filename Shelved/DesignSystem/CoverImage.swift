@@ -7,6 +7,8 @@ import SwiftUI
 struct CoverImage: View {
     let url: URL?
     var width: CGFloat = 44
+    /// Shown while loading or when there's no image, e.g. "person.fill" for author photos.
+    var placeholderSymbol = "book.closed"
 
     var body: some View {
         AsyncImage(url: url) { phase in
@@ -24,7 +26,7 @@ struct CoverImage: View {
     private var placeholder: some View {
         ZStack {
             Rectangle().fill(.quaternary)
-            Image(systemName: "book.closed").foregroundStyle(.secondary)
+            Image(systemName: placeholderSymbol).foregroundStyle(.secondary)
         }
     }
 }
@@ -33,5 +35,6 @@ struct CoverImage: View {
     HStack {
         CoverImage(url: nil)
         CoverImage(url: nil, width: 110)
+        CoverImage(url: nil, width: 110, placeholderSymbol: "person.fill")
     }
 }

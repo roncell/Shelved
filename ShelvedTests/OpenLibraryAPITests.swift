@@ -25,4 +25,13 @@ struct OpenLibraryAPITests {
         #expect(items.first { $0.name == "q" }?.value == "du*")
         #expect(items.first { $0.name == "page" }?.value == "2")
     }
+
+    @Test func worksEndpointQueriesAuthorKeyExactly() throws {
+        let url = try OpenLibraryAPI.works(byAuthor: "OL79034A", page: 3, limit: 20).makeURL()
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+
+        // No trailing "*": this is an exact key lookup, not a typed prefix.
+        #expect(items.first { $0.name == "q" }?.value == "author_key:OL79034A")
+        #expect(items.first { $0.name == "page" }?.value == "3")
+    }
 }

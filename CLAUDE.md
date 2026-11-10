@@ -178,9 +178,9 @@ ShelvedUITests/
 - **Learn:** async/await, `Codable`, structured concurrency, task cancellation on new queries, separating DTOs from the domain
 
 ### Phase 3 — Detail & creator flow
-- [ ] Item detail screen (full metadata, add-to-shelf button)
-- [ ] Creator screen listing their other works
-- [ ] Infinite drill-down: detail → creator → work → …
+- [x] Item detail screen (full metadata, add-to-shelf button — disabled until Phase 4 wires it to shelves)
+- [x] Creator screen listing their other works
+- [x] Infinite drill-down: detail → creator → work → …
 - **Learn:** passing IDs (not objects) through routes, each screen loading its own data
 
 ### Phase 4 — Library & persistence
@@ -241,3 +241,7 @@ Record notable architecture decisions here as the project evolves.
 | 2026-10-30 | Debounce with `.task(id: query)` + `Task.sleep`, no Combine | SwiftUI cancels the stale task on each keystroke; cancellation propagates to URLSession |
 | 2026-10-30 | `AsyncImage` for covers, wrapped in `CoverImage` | No dependency yet; no disk cache, so swap the loader inside `CoverImage` if it becomes a problem |
 | 2026-11-06 | Search-as-you-type: last word sent as a prefix (`du` → `du*`) in `OpenLibraryAPI.prefixQuery` | Open Library matches whole words; the wildcard is Open Library query syntax, so it lives in the Open Library layer, not the ViewModel |
+| 2026-11-09 | Catalog follows Open Library `/type/redirect` records (max 3 hops) and returns the canonical ID | Merged records leave stale IDs behind (Home's Dune `OL893415W` was one); routes, deep links and saved entries all carry IDs |
+| 2026-11-09 | Creator works via `search.json?q=author_key:…`, not `/authors/{id}/works.json` | Popularity ranking, covers and years, and reuses the search DTO/mapper; the works endpoint sorts by last edit with no covers |
+| 2026-11-09 | Creator screen loads profile + first works page with `async let`; works fail independently | Two fixed calls in parallel; a failed works list shouldn't hide the profile |
+| 2026-11-09 | Shared list pieces (`MediaItemRow`, `LoadMoreFooter`, `ExpandableText`) live in DesignSystem/ | Search and Creator both use them, and features must not import each other once modularized |

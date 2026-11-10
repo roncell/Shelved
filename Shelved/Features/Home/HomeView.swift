@@ -7,7 +7,7 @@ struct HomeView: View {
         List {
             Section("Currently reading") {
                 // A real Open Library work ID. Replaced by your library in Phase 4/8.
-                Button("Dune") { router.push(.itemDetail(.openLibraryWork("OL893415W"))) }
+                Button("Dune") { router.push(.itemDetail(.openLibraryWork("OL893414W"))) }
             }
         }
         .navigationTitle("Home")

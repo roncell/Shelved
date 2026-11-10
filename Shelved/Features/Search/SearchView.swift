@@ -54,38 +54,18 @@ struct SearchView: View {
                     Button {
                         router.push(.itemDetail(item.id))
                     } label: {
-                        SearchResultRow(item: item)
+                        MediaItemRow(item: item)
                     }
                     .accessibilityHint(Text("Opens details"))
                 }
                 if viewModel.hasMorePages {
-                    pageFooter(itemCount: items.count)
+                    LoadMoreFooter(trigger: items.count, failed: viewModel.nextPageFailed) {
+                        await viewModel.loadNextPage()
+                    }
                 }
             }
             .listStyle(.plain)
         }
-    }
-
-    /// The last row. When it scrolls into view, the next page loads.
-    @ViewBuilder
-    private func pageFooter(itemCount: Int) -> some View {
-        HStack {
-            Spacer()
-            if viewModel.nextPageFailed {
-                Button("Load More") {
-                    Task { await viewModel.loadNextPage() }
-                }
-            } else {
-                ProgressView()
-                    // Keyed on the count: after a page arrives, this row is
-                    // still on screen, so the task must re-fire for the next page.
-                    .task(id: itemCount) {
-                        await viewModel.loadNextPage()
-                    }
-            }
-            Spacer()
-        }
-        .listRowSeparator(.hidden)
     }
 }
 

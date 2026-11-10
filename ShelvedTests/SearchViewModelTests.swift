@@ -2,22 +2,6 @@ import Foundation
 import Testing
 @testable import Shelved
 
-/// A fake catalog that returns pre-set pages. This is why `MediaCatalog`
-/// is a protocol: the ViewModel can't tell this apart from Open Library.
-nonisolated struct StubCatalog: MediaCatalog {
-    var pages: [Int: SearchPage] = [:]
-    var error: (any Error)?
-
-    func search(query: String, page: Int) async throws -> SearchPage {
-        if let error { throw error }
-        return pages[page] ?? SearchPage(items: [], hasMore: false)
-    }
-
-    func detail(for id: MediaID) async throws -> MediaDetail {
-        throw URLError(.unsupportedURL)
-    }
-}
-
 private func item(_ title: String) -> MediaItem {
     MediaItem(id: .openLibraryWork(title), kind: .book, title: title,
               creators: [], coverURL: nil, year: nil)

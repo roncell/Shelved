@@ -42,7 +42,22 @@ nonisolated enum OpenLibraryAPI {
         return trimmed + "*"
     }
 
-    /// GET /works/OL893415W.json
+    /// GET /search.json?q=author_key:OL79034A&page=1&limit=20
+    ///
+    /// Uses search rather than /authors/{id}/works.json: search ranks by
+    /// popularity (Dune first, not whatever was edited last) and returns
+    /// covers and years in the same shape the search screen already maps.
+    /// The query is exact, so no `prefixQuery`.
+    static func works(byAuthor authorID: String, page: Int, limit: Int) -> Endpoint<OLSearchResponse> {
+        Endpoint(host: host, path: "/search.json", queryItems: [
+            URLQueryItem(name: "q", value: "author_key:\(authorID)"),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "fields", value: searchFields),
+        ])
+    }
+
+    /// GET /works/OL893414W.json
     static func work(id: String) -> Endpoint<OLWork> {
         Endpoint(host: host, path: "/works/\(id).json")
     }

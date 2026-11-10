@@ -59,6 +59,8 @@ private struct DetailContent: View {
                             Text(String(year))
                                 .foregroundStyle(.secondary)
                         }
+                        addToShelfButton
+                            .padding(.top, 6)
                     }
                 }
             }
@@ -74,24 +76,54 @@ private struct DetailContent: View {
 
             if let summary = detail.summary {
                 Section("About") {
-                    Text(summary)
+                    ExpandableText(summary)
                 }
             }
 
-            if !detail.subjects.isEmpty {
-                Section("Subjects") {
-                    Text(detail.subjects.formatted(.list(type: .and)))
-                        .foregroundStyle(.secondary)
+            tagSection("Subjects", detail.subjects)
+            tagSection("Places", detail.places)
+            tagSection("Characters", detail.characters)
+            tagSection("Time Period", detail.timePeriods)
+
+            if !detail.links.isEmpty {
+                Section("Links") {
+                    ForEach(detail.links, id: \.url) { link in
+                        Link(link.title, destination: link.url)
+                    }
                 }
             }
         }
         .navigationTitle(detail.title)
     }
+
+    /// Visible now so the layout is settled; shelves (and this action) arrive
+    /// with persistence in Phase 4. Disabled rather than a silent no-op, so it
+    /// never looks like it saved something.
+    private var addToShelfButton: some View {
+        Button {
+            // Phase 4: open the shelf picker.
+        } label: {
+            Label("Add to Shelf", systemImage: "plus")
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(true)
+        .accessibilityHint(Text("Shelves are coming soon"))
+    }
+
+    @ViewBuilder
+    private func tagSection(_ title: LocalizedStringKey, _ values: [String]) -> some View {
+        if !values.isEmpty {
+            Section(title) {
+                Text(values.formatted(.list(type: .and)))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
 }
 
 #Preview {
     NavigationStack {
-        ItemDetailView(id: .openLibraryWork("OL893415W"), catalog: PreviewCatalog())
+        ItemDetailView(id: .openLibraryWork("OL893414W"), catalog: PreviewCatalog())
             .withRouteDestinations()
     }
     .environment(Router())

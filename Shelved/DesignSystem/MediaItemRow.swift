@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SearchResultRow: View {
+struct MediaItemRow: View {
     let item: MediaItem
 
     var body: some View {
@@ -32,5 +32,5 @@ struct SearchResultRow: View {
 }
 
 #Preview {
-    List(PreviewCatalog.items) { SearchResultRow(item: $0) }
+    List(PreviewCatalog.items) { MediaItemRow(item: $0) }
 }

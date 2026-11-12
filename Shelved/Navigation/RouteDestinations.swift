@@ -12,6 +12,10 @@ struct RouteDestinations: ViewModifier {
                 ItemDetailView(id: id)
             case .creator(let id):
                 CreatorView(id: id)
+            case .shelf(let id):
+                ShelfView(id: id)
+            case .review(let id):
+                ReviewView(id: id)
             }
         }
     }

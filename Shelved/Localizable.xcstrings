@@ -4,13 +4,16 @@
     "About" : {
 
     },
-    "Author" : {
+    "Add to Shelf" : {
 
     },
-    "Author pages arrive in Phase 3" : {
+    "Born %@" : {
 
     },
     "By" : {
+
+    },
+    "Characters" : {
 
     },
     "Charts arrive in Phase 8." : {
@@ -19,10 +22,16 @@
     "Couldn't load results" : {
 
     },
+    "Couldn't load this author" : {
+
+    },
     "Couldn't load this book" : {
 
     },
     "Currently reading" : {
+
+    },
+    "Died %@" : {
 
     },
     "Dune" : {
@@ -37,13 +46,22 @@
     "Library" : {
 
     },
+    "Links" : {
+
+    },
     "Load More" : {
+
+    },
+    "No works found." : {
 
     },
     "Open Library is having trouble right now. Try again in a bit." : {
 
     },
     "Opens details" : {
+
+    },
+    "Places" : {
 
     },
     "Search" : {
@@ -56,6 +74,15 @@
 
     },
     "Settings arrive in Phase 8." : {
+
+    },
+    "Shelves are coming soon" : {
+
+    },
+    "Show Less" : {
+
+    },
+    "Show More" : {
 
     },
     "Shows other works by this author" : {
@@ -73,7 +100,7 @@
     "The request timed out. Try again." : {
 
     },
-    "This screen will list the author's other works." : {
+    "Time Period" : {
 
     },
     "Title or author" : {
@@ -82,7 +109,13 @@
     "Try Again" : {
 
     },
+    "Unknown Author" : {
+
+    },
     "Untitled" : {
+
+    },
+    "Works" : {
 
     },
     "You're offline. Check your connection and try again." : {

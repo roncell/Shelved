@@ -4,6 +4,9 @@ extension Error {
     /// A short message that's safe to show a user.
     /// Raw errors ("The data couldn't be read because it is missing") are for logs, not people.
     var userMessage: String {
+        if let libraryError = self as? LibraryError {
+            return libraryError.message
+        }
         if let urlError = self as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:

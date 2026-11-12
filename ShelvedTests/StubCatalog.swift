@@ -8,6 +8,7 @@ import Foundation
 /// Phase 5 is where that difference gets its own lesson.
 nonisolated struct StubCatalog: MediaCatalog {
     var pages: [Int: SearchPage] = [:]
+    var detail: MediaDetail?
     var creator: CreatorDetail?
     var worksPages: [Int: SearchPage] = [:]
     /// Thrown by every call when set.
@@ -21,7 +22,9 @@ nonisolated struct StubCatalog: MediaCatalog {
     }
 
     func detail(for id: MediaID) async throws -> MediaDetail {
-        throw URLError(.unsupportedURL)
+        if let error { throw error }
+        guard let detail else { throw URLError(.unsupportedURL) }
+        return detail
     }
 
     func creator(for id: CreatorID) async throws -> CreatorDetail {

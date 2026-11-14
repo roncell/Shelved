@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import Shelved
 
@@ -49,7 +50,7 @@ struct SwiftDataLibraryRepositoryTests {
         try repository.save(dune, to: shelf(.inProgress, in: repository).id)
 
         let counts = try repository.shelves().map(\.itemCount)
-        #expect(counts == [0, 1, 0, 0])
+        #expect(counts == [0, 1, 0])
     }
 
     @Test func movingToInProgressAndFinishedSetsDates() throws {
@@ -91,6 +92,44 @@ struct SwiftDataLibraryRepositoryTests {
         try repository.deleteShelf(bookClub.id)
 
         #expect(try repository.item(for: dune.id)?.shelfID == shelf(.wantTo, in: repository).id)
+        #expect(try repository.shelves().count == SystemShelf.allCases.count)
+    }
+
+    /// Stores created before "Abandoned" was removed still have that row.
+    @Test func removedSystemShelfKeepsItsItemsAsCustomShelf() throws {
+        let container = try ModelContainer(
+            for: Shelf.self, LibraryEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let legacy = Shelf(name: "", system: nil, sortOrder: 3)
+        legacy.systemKind = "abandoned"
+        container.mainContext.insert(legacy)
+        let entry = LibraryEntry(mediaKey: dune.id.storageKey)
+        entry.title = dune.title
+        entry.shelf = legacy
+        container.mainContext.insert(entry)
+        try container.mainContext.save()
+
+        let repository = try SwiftDataLibraryRepository(container: container)
+
+        let custom = try #require(try repository.shelves().first { !$0.isSystem })
+        #expect(custom.name == "Abandoned")
+        #expect(try repository.item(for: dune.id)?.shelfID == custom.id)
+    }
+
+    @Test func emptyRemovedSystemShelfIsDeleted() throws {
+        let container = try ModelContainer(
+            for: Shelf.self, LibraryEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let legacy = Shelf(name: "", system: nil, sortOrder: 3)
+        legacy.systemKind = "abandoned"
+        container.mainContext.insert(legacy)
+        try container.mainContext.save()
+
+        let repository = try SwiftDataLibraryRepository(container: container)
+
+        #expect(try repository.shelves().compactMap(\.system) == SystemShelf.allCases)
         #expect(try repository.shelves().count == SystemShelf.allCases.count)
     }
 

@@ -28,7 +28,7 @@ nonisolated struct ReadingLog: Hashable, Sendable {
             log.startedAt = startedAt ?? date
         case .finished:
             log.finishedAt = finishedAt ?? date
-        case .wantTo, .abandoned, nil:
+        case .wantTo, nil:
             break
         }
         return log

@@ -178,17 +178,17 @@ ShelvedUITests/
 - **Learn:** async/await, `Codable`, structured concurrency, task cancellation on new queries, separating DTOs from the domain
 
 ### Phase 3 — Detail & creator flow
-- [x] Item detail screen (full metadata, add-to-shelf button — disabled until Phase 4 wires it to shelves)
-- [x] Creator screen listing their other works
-- [x] Infinite drill-down: detail → creator → work → …
+- [ ] Item detail screen (full metadata, add-to-shelf button)
+- [ ] Creator screen listing their other works
+- [ ] Infinite drill-down: detail → creator → work → …
 - **Learn:** passing IDs (not objects) through routes, each screen loading its own data
 
 ### Phase 4 — Library & persistence
-- [x] SwiftData models: `LibraryEntry`, `Shelf`
-- [x] `LibraryRepository` protocol + SwiftData implementation
-- [x] Shelves screen, shelf detail, move/remove items
-- [x] Ratings, reviews, progress, dates
-- [x] Offline: saved items show without a network connection
+- [ ] SwiftData models: `LibraryEntry`, `Shelf`
+- [ ] `LibraryRepository` protocol + SwiftData implementation
+- [ ] Shelves screen, shelf detail, move/remove items
+- [ ] Ratings, reviews, progress, dates
+- [ ] Offline: saved items show without a network connection
 - **Learn:** SwiftData modeling, the repository pattern, keeping persistence out of views
 
 ### Phase 5 — Dependency injection & tests
@@ -241,14 +241,4 @@ Record notable architecture decisions here as the project evolves.
 | 2026-10-30 | Debounce with `.task(id: query)` + `Task.sleep`, no Combine | SwiftUI cancels the stale task on each keystroke; cancellation propagates to URLSession |
 | 2026-10-30 | `AsyncImage` for covers, wrapped in `CoverImage` | No dependency yet; no disk cache, so swap the loader inside `CoverImage` if it becomes a problem |
 | 2026-11-06 | Search-as-you-type: last word sent as a prefix (`du` → `du*`) in `OpenLibraryAPI.prefixQuery` | Open Library matches whole words; the wildcard is Open Library query syntax, so it lives in the Open Library layer, not the ViewModel |
-| 2026-11-09 | Catalog follows Open Library `/type/redirect` records (max 3 hops) and returns the canonical ID | Merged records leave stale IDs behind (Home's Dune `OL893415W` was one); routes, deep links and saved entries all carry IDs |
-| 2026-11-09 | Creator works via `search.json?q=author_key:…`, not `/authors/{id}/works.json` | Popularity ranking, covers and years, and reuses the search DTO/mapper; the works endpoint sorts by last edit with no covers |
-| 2026-11-09 | Creator screen loads profile + first works page with `async let`; works fail independently | Two fixed calls in parallel; a failed works list shouldn't hide the profile |
-| 2026-11-09 | Shared list pieces (`MediaItemRow`, `LoadMoreFooter`, `ExpandableText`) live in DesignSystem/ | Search and Creator both use them, and features must not import each other once modularized |
-| 2026-11-11 | `LibraryRepository` returns value types (`ShelfSummary`, `LibraryItem`), never `@Model` objects; no `@Query` | Keeps SwiftData out of views/ViewModels. Cost: screens re-fetch on every appear instead of auto-updating |
-| 2026-11-11 | Repository is `@MainActor` on the main context, but its protocol methods are `async` | Simple now; moving to a background `@ModelActor` later changes no call sites |
-| 2026-11-11 | `@Model`s are CloudKit-shaped: defaults everywhere, optional relationships, no `@Attribute(.unique)` | CloudKit sync is a stretch goal and model changes need migrations; uniqueness is enforced in the repository |
-| 2026-11-11 | Entries store a media snapshot; IDs stored as `storageKey` strings ("openlibrary:work:OL…") | Shelves render offline; `#Predicate` can't match inside an enum with associated values |
-| 2026-11-11 | One shelf per item; deleting a custom shelf moves its items to Want to Read | Matches the spec's single `shelf` field; deleting a shelf shouldn't delete ratings |
-| 2026-11-11 | Detail falls back to the saved snapshot when the catalog fails | Saved books open offline; done in `ItemDetailViewModel` for now, a candidate for a merging repository later |
-| 2026-11-11 | Repository injected as `SwiftDataLibraryRepository.shared` default argument | Same stopgap as the catalog; Phase 5 replaces both with an Environment container. Known gap: screens pushed from a preview use the real store |
+| 2026-11-06 | Search results sorted by `sort=readinglog` (most-read first) | Prefix matches all score the same, so relevance order is lost; popularity is a sensible order for a tracker |

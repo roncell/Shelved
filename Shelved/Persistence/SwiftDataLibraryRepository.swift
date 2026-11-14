@@ -22,6 +22,7 @@ final class SwiftDataLibraryRepository: LibraryRepository {
         self.container = container
         self.context = container.mainContext
         self.now = now
+        try retireRemovedSystemShelves()
         try ensureSystemShelves()
     }
 
@@ -156,6 +157,34 @@ final class SwiftDataLibraryRepository: LibraryRepository {
         if inserted { try context.save() }
     }
 
+    /// Handles rows whose `systemKind` this version no longer knows, such as
+    /// "abandoned" (removed after Phase 4). An empty one is deleted; one with
+    /// items becomes a custom shelf under its old name, so nothing the user
+    /// saved is moved or lost. They can delete it like any other shelf.
+    private func retireRemovedSystemShelves() throws {
+        let retired = try context.fetch(FetchDescriptor<Shelf>()).filter { shelf in
+            guard let kind = shelf.systemKind else { return false }
+            return SystemShelf(rawValue: kind) == nil
+        }
+        guard !retired.isEmpty else { return }
+        for shelf in retired {
+            if shelf.entries?.isEmpty ?? true {
+                context.delete(shelf)
+            } else {
+                shelf.name = Self.legacyName(forSystemKind: shelf.systemKind)
+                shelf.systemKind = nil
+            }
+        }
+        try context.save()
+    }
+
+    private static func legacyName(forSystemKind kind: String?) -> String {
+        switch kind {
+        case "abandoned": String(localized: "Abandoned")
+        default: kind ?? ""
+        }
+    }
+
     private func fetchShelf(_ id: ShelfID) throws -> Shelf {
         // #Predicate can't reach into `id.rawValue`; copy it to a local first.
         let uuid = id.rawValue
@@ -166,7 +195,7 @@ final class SwiftDataLibraryRepository: LibraryRepository {
     }
 
     private func fetchSystemShelf(_ system: SystemShelf) throws -> Shelf {
-        // Four rows at most, so filtering in memory is simpler than an
+        // A handful of rows at most, so filtering in memory is simpler than an
         // optional-String predicate.
         guard let shelf = try context.fetch(FetchDescriptor<Shelf>())
             .first(where: { $0.systemKind == system.rawValue })

@@ -1,5 +1,7 @@
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Navigation
 
 @MainActor
 struct RouterTests {

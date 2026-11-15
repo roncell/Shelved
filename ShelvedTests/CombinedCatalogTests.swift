@@ -1,6 +1,8 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Networking
 
 private func item(_ title: String, _ id: MediaID) -> MediaItem {
     MediaItem(id: id, kind: id.kind, title: title, creators: [], coverURL: nil, year: nil)

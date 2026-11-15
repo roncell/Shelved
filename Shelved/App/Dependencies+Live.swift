@@ -1,4 +1,7 @@
+import Data
 import Foundation
+import Networking
+import Persistence
 
 extension Dependencies {
     /// Passed by the UI tests (`ShelvedUITests`) to swap in offline fakes.

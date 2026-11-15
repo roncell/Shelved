@@ -1,6 +1,8 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Networking
 
 struct TMDBCatalogTests {
     @Test func searchPicksTheEndpointForTheKind() async throws {

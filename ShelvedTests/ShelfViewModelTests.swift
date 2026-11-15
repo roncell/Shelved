@@ -1,6 +1,9 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import LibraryFeature
+@testable import Persistence
 
 private extension Loadable {
     var isFailed: Bool { if case .failed = self { true } else { false } }
@@ -8,7 +11,7 @@ private extension Loadable {
 
 @MainActor
 struct ShelfViewModelTests {
-    private let library = SwiftDataLibraryRepository.preview()
+    private let library = InMemoryLibraryRepository.preview()
 
     /// The preview library has Dune on In Progress.
     private func inProgress() throws -> ShelfSummary {

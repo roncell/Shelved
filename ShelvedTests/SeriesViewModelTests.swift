@@ -1,6 +1,9 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Persistence
+@testable import SeriesFeature
 
 private let duneID = MediaID.openLibraryWork("OL893414W")
 private let messiahID = MediaID.openLibraryWork("OL893461W")
@@ -26,7 +29,7 @@ struct SeriesViewModelTests {
     }
 
     @Test func rowsJoinSeriesCatalogAndLibrary() async throws {
-        let library = SwiftDataLibraryRepository.preview()   // Dune is on In Progress
+        let library = InMemoryLibraryRepository.preview()   // Dune is on In Progress
         let viewModel = makeViewModel(library: library)
 
         await viewModel.load()
@@ -42,7 +45,7 @@ struct SeriesViewModelTests {
 
     /// Dune is already In Progress; adding the series mustn't move it back.
     @Test func addAllOnlyAddsUnsavedBooks() async throws {
-        let library = SwiftDataLibraryRepository.preview()
+        let library = InMemoryLibraryRepository.preview()
         let viewModel = makeViewModel(library: library)
         await viewModel.load()
 

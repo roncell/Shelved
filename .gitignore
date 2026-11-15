@@ -9,3 +9,7 @@ build/
 
 # Secrets (TMDB key, Phase 6) — commit Secrets.example.xcconfig instead
 Secrets.xcconfig
+
+# SwiftPM (local packages)
+.build/
+.swiftpm/

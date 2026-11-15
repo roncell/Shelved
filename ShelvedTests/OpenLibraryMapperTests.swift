@@ -1,6 +1,8 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Networking
 
 /// Decodes realistic JSON and checks the domain models that come out.
 /// No network: these run in milliseconds and never flake.

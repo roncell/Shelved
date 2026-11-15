@@ -1,6 +1,7 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
 
 /// Pure value types: no store, no network, no main actor.
 struct RatingTests {

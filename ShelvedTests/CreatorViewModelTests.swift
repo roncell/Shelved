@@ -1,6 +1,8 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import CreatorFeature
+@testable import Data
 
 private let authorID = CreatorID.openLibraryAuthor("OL79034A")
 

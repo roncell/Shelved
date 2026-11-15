@@ -1,6 +1,8 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import SearchFeature
 
 private func item(_ title: String) -> MediaItem {
     MediaItem(id: .openLibraryWork(title), kind: .book, title: title,

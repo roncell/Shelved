@@ -1,5 +1,6 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
 
 /// A stub library where every call throws, for testing error paths that
 /// the real repository can't easily be pushed into (a corrupt store, a full disk).

@@ -1,6 +1,9 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import DetailFeature
+@testable import Persistence
 
 @MainActor
 struct ItemDetailViewModelTests {

@@ -1,3 +1,9 @@
+import HomeFeature
+import LibraryFeature
+import Navigation
+import SearchFeature
+import SettingsFeature
+import StatsFeature
 import SwiftUI
 
 struct RootTabView: View {

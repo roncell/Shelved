@@ -1,5 +1,6 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
 
 /// Canned series answers. By default: "not in a series".
 nonisolated struct StubSeriesCatalog: SeriesCatalog {

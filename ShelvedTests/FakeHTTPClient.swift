@@ -1,5 +1,7 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Networking
 
 /// Serves canned JSON by URL path, so a catalog runs its real logic
 /// (redirects, mapping, task groups) without any network.

@@ -1,6 +1,9 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Persistence
+@testable import ReviewFeature
 
 @MainActor
 struct ReviewViewModelTests {

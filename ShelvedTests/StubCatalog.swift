@@ -1,5 +1,6 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
 
 /// A fake catalog that returns pre-set data. This is why `MediaCatalog`
 /// is a protocol: the ViewModel can't tell this apart from Open Library.

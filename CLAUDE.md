@@ -126,30 +126,30 @@ Every screen must handle empty, loading, error, and offline states.
 - Plain values and networking types (domain models, DTOs, `Endpoint`, `HTTPClient`, catalogs, mappers) are marked `nonisolated` and `Sendable`, so they can be decoded and passed between threads regardless of the default isolation.
 - Async work is tied to view lifetime with `.task` / `.task(id:)`, so leaving a screen cancels its requests. On cancellation, don't show an error.
 
-## Project structure (target)
+## Project structure
 ```
-Shelved/                     # App target: entry point, tab shell, DI wiring
-Packages/
-  Core/                      # Domain models, Loadable, shared utilities
-  DesignSystem/              # Colors, typography, reusable components (RatingView, CoverImage…)
-  Networking/                # HTTP client, endpoints, DTOs
+Shelved/                     # App target: entry point, tab shell, DI wiring, RouteDestinations
+Packages/                    # One local package (ShelvedKit), one target per folder below
+  Package.swift              # The dependency graph, in one place
+  Core/                      # Domain models, Loadable, UserFacingError, shared utilities
+  DesignSystem/              # Reusable components (RatingView, CoverImage, MediaItemRow…)
+  Data/                      # Service protocols, CombinedCatalog, fakes (PreviewCatalog, InMemoryLibraryRepository)
+  Networking/                # HTTP client, endpoints, DTOs, catalogs
     OpenLibrary/
     TMDB/
-  Persistence/               # SwiftData models, store
-  Data/                      # Repositories (merge remote + local)
-  Navigation/                # Route, Router, deep link parsing
+    Wikidata/
+  Persistence/               # SwiftData models, SwiftDataLibraryRepository
+  Navigation/                # Route, Router, AppTab, TabCoordinator
   Features/
-    HomeFeature/
-    SearchFeature/
-    DetailFeature/
-    CreatorFeature/
-    LibraryFeature/
-    StatsFeature/
-    SettingsFeature/
+    HomeFeature/  SearchFeature/  DetailFeature/  CreatorFeature/  SeriesFeature/
+    LibraryFeature/  ReviewFeature/  StatsFeature/  SettingsFeature/
+Scripts/check-module-imports.sh  # Enforces the dependency rules on every build
 ShelvedTests/
 ShelvedUITests/
 ```
-**Dependency rules:** Features depend on Core, DesignSystem, Navigation, and repository *protocols*. Features never import each other or Networking/Persistence directly. Only the app target wires concrete implementations.
+**Dependency rules:** Features depend on Core, DesignSystem, Navigation, and Data (service *protocols* and fakes). Features never import each other or Networking/Persistence directly. Networking and Persistence implement Data's protocols. Only the app target wires concrete implementations.
+
+Xcode doesn't enforce `Package.swift` dependencies (all package modules share one build folder, so an undeclared `import` still compiles). The `ModuleRules` target runs `Scripts/check-module-imports.sh` before every app build and fails it on a forbidden import. Its rule table must match `Package.swift`.
 
 > Start everything in the app target (Phase 1–4), then extract packages in Phase 7. Feeling the pain before modularizing is part of the lesson.
 
@@ -162,6 +162,7 @@ ShelvedUITests/
 - Strings in a String Catalog from day one.
 - Accessibility: every interactive element has a label, and layouts support Dynamic Type.
 - Commit messages: `feat:`, `fix:`, `refactor:`, `test:`, `chore:`.
+- Access control across modules: `public` for what the app target uses (domain types, service protocols, screen views and their `init`s); `package` for what only other package modules use (DesignSystem); `internal` for the rest (ViewModels, DTOs, mappers), which tests reach with `@testable import`. Public structs need an explicit `public init`: the synthesized memberwise one is internal.
 
 ## Roadmap
 
@@ -222,9 +223,10 @@ Goal: searching "game of thrones" offers the whole *A Song of Ice and Fire* seri
 - **Learn:** whether the abstraction holds up. If adding a second source hurts, refactor and note why.
 
 ### Phase 7 — Modularization
-- [ ] Extract packages per the target structure above
-- [ ] Enforce dependency rules (features don't import each other)
-- [ ] Measure build-time impact
+- [x] Extract packages per the target structure above
+- [x] Enforce dependency rules (features don't import each other)
+- [x] Measure build-time impact
+  - **Result (2026-11-14, iPhone 18 Pro simulator, Debug, M1 Pro):** clean build 14.0 s → 17–18 s; changing a feature's interface 4.2 s → 4.6 s; changing a Core type's interface 4.1 s → 11 s. At this size modularizing makes builds *slower*: an interface change in a low module now rebuilds every module above it, where one module's incremental build only recompiled the files that used it. The payoff is boundaries (enforced dependencies, smaller public surfaces) and, in much bigger apps, parallel builds and skipping untouched modules.
 - **Learn:** module boundaries, access control (`public`/`package`/`internal`), why big apps modularize
 
 ### Phase 8 — Stats, Home & polish
@@ -292,3 +294,12 @@ Record notable architecture decisions here as the project evolves.
 | 2026-11-14 | Series cleanup: numeric positions only, one book per position (prefer one with a work ID, a real title, the lowest Q-number); "of N" only when positions run 1…N with no gaps | Wikidata is crowd-edited; a wrong total is worse than none |
 | 2026-11-14 | `WikidataSeriesCatalog` is an actor with an in-memory cache (including "no series") | Search, Detail and Series ask about the same book; series rarely change. No disk cache yet |
 | 2026-11-14 | "Add all to Want to Read" skips books already saved anywhere | Re-adding would move a finished book back to Want to Read |
+| 2026-11-14 | One local package (`Packages/Package.swift`) with a target per module, not one package per module | The whole dependency graph is readable in one file; folders still match the planned structure. Separate packages would only matter for versioning or sharing outside this repo |
+| 2026-11-14 | Data holds the service protocols; Networking and Persistence depend on Data and implement them | Dependency inversion: features see protocols without being able to reach a concrete source |
+| 2026-11-14 | `Error.userMessage` asks a `UserFacingError` protocol (Core) instead of listing error types | Core is the bottom layer and can't import `LibraryError` (Data) or `NetworkError` (Networking); each error describes itself where it's declared |
+| 2026-11-14 | Feature previews use `InMemoryLibraryRepository` (a fake in Data), checked against SwiftData by `LibraryRepositoryContractTests` | Features can't import Persistence. A fake that drifts would make previews lie, so both implementations run the same tests. Supersedes "previews use the real repository on a throwaway store" |
+| 2026-11-14 | Feature previews render one screen; pushes inside them go nowhere. `RouteDestinations` moved to the app target | Mapping a route to a screen needs every feature, and only the app may import them all. `RootTabView`'s preview still navigates everywhere |
+| 2026-11-14 | Dependency rules enforced by a build-time script (`ModuleRules` aggregate target), not by Xcode or a unit test | Xcode compiles undeclared imports of sibling package modules. A unit test reading sources from the simulator hung on macOS privacy protection (the repo is in ~/Downloads). Cost: the rule table is written twice (script + manifest) |
+| 2026-11-14 | Networking exposes only the three catalogs (`public init()`); `HTTPClient`, DTOs and mappers stay internal | The app needs nothing else, and tests use `@testable import`. Public `init(client:)` would leak `HTTPClient` into the public API |
+| 2026-11-14 | `Core.LibraryItem` spelled out in three views | SwiftUI also declares `LibraryItem`. Inside the app target our type shadowed it; across modules the two imports tie |
+| 2026-11-14 | Strings in packages still resolve against the app's `Localizable.xcstrings` (main bundle); no per-package catalogs yet | English-only, so behavior is identical. Per-package catalogs mean passing `bundle: .module` to every `Text`; worth it when a second language arrives |

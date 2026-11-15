@@ -6,6 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		A10000000000000000000104 /* ModuleRules */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = A10000000000000000000441 /* Build configuration list for PBXAggregateTarget "ModuleRules" */;
+			buildPhases = (
+				A10000000000000000000224 /* Check module imports */,
+			);
+			dependencies = (
+			);
+			name = ModuleRules;
+			productName = ModuleRules;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000500 /* Core in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000600 /* Core */; };
+		A10000000000000000000501 /* Data in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000601 /* Data */; };
+		A10000000000000000000502 /* Navigation in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000602 /* Navigation */; };
+		A10000000000000000000503 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000603 /* Networking */; };
+		A10000000000000000000504 /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000604 /* Persistence */; };
+		A10000000000000000000505 /* HomeFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000605 /* HomeFeature */; };
+		A10000000000000000000506 /* SearchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000606 /* SearchFeature */; };
+		A10000000000000000000507 /* DetailFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000607 /* DetailFeature */; };
+		A10000000000000000000508 /* CreatorFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000608 /* CreatorFeature */; };
+		A10000000000000000000509 /* SeriesFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000609 /* SeriesFeature */; };
+		A1000000000000000000050A /* LibraryFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000060A /* LibraryFeature */; };
+		A1000000000000000000050B /* ReviewFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000060B /* ReviewFeature */; };
+		A1000000000000000000050C /* StatsFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000060C /* StatsFeature */; };
+		A1000000000000000000050D /* SettingsFeature in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000060D /* SettingsFeature */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A10000000000000000000301 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,6 +52,13 @@
 			remoteGlobalIDString = A10000000000000000000101;
 			remoteInfo = Shelved;
 		};
+		A10000000000000000000305 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000104;
+			remoteInfo = ModuleRules;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +68,7 @@
 		A10000000000000000000031 /* Shelved.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shelved.xcconfig; sourceTree = "<group>"; };
 		A10000000000000000000032 /* Secrets.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.example.xcconfig; sourceTree = "<group>"; };
 		A10000000000000000000033 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000000000000000000701 /* Packages */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Packages; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -55,6 +94,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000500 /* Core in Frameworks */,
+				A10000000000000000000501 /* Data in Frameworks */,
+				A10000000000000000000502 /* Navigation in Frameworks */,
+				A10000000000000000000503 /* Networking in Frameworks */,
+				A10000000000000000000504 /* Persistence in Frameworks */,
+				A10000000000000000000505 /* HomeFeature in Frameworks */,
+				A10000000000000000000506 /* SearchFeature in Frameworks */,
+				A10000000000000000000507 /* DetailFeature in Frameworks */,
+				A10000000000000000000508 /* CreatorFeature in Frameworks */,
+				A10000000000000000000509 /* SeriesFeature in Frameworks */,
+				A1000000000000000000050A /* LibraryFeature in Frameworks */,
+				A1000000000000000000050B /* ReviewFeature in Frameworks */,
+				A1000000000000000000050C /* StatsFeature in Frameworks */,
+				A1000000000000000000050D /* SettingsFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +135,7 @@
 				A10000000000000000000022 /* ShelvedTests */,
 				A10000000000000000000023 /* ShelvedUITests */,
 				A10000000000000000000030 /* Config */,
+				A10000000000000000000701 /* Packages */,
 				A10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -120,11 +174,28 @@
 			buildRules = (
 			);
 			dependencies = (
+				A10000000000000000000306 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000021 /* Shelved */,
 			);
 			name = Shelved;
+			packageProductDependencies = (
+				A10000000000000000000600 /* Core */,
+				A10000000000000000000601 /* Data */,
+				A10000000000000000000602 /* Navigation */,
+				A10000000000000000000603 /* Networking */,
+				A10000000000000000000604 /* Persistence */,
+				A10000000000000000000605 /* HomeFeature */,
+				A10000000000000000000606 /* SearchFeature */,
+				A10000000000000000000607 /* DetailFeature */,
+				A10000000000000000000608 /* CreatorFeature */,
+				A10000000000000000000609 /* SeriesFeature */,
+				A1000000000000000000060A /* LibraryFeature */,
+				A1000000000000000000060B /* ReviewFeature */,
+				A1000000000000000000060C /* StatsFeature */,
+				A1000000000000000000060D /* SettingsFeature */,
+			);
 			productName = Shelved;
 			productReference = A10000000000000000000011 /* Shelved.app */;
 			productType = "com.apple.product-type.application";
@@ -192,6 +263,9 @@
 						CreatedOnToolsVersion = 27.1;
 						TestTargetID = A10000000000000000000101;
 					};
+					A10000000000000000000104 = {
+						CreatedOnToolsVersion = 27.1;
+					};
 				};
 			};
 			buildConfigurationList = A10000000000000000000401 /* Build configuration list for PBXProject "Shelved" */;
@@ -203,6 +277,9 @@
 			);
 			mainGroup = A10000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A10000000000000000000700 /* XCLocalSwiftPackageReference "Packages" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -211,6 +288,7 @@
 				A10000000000000000000101 /* Shelved */,
 				A10000000000000000000102 /* ShelvedTests */,
 				A10000000000000000000103 /* ShelvedUITests */,
+				A10000000000000000000104 /* ModuleRules */,
 			);
 		};
 /* End PBXProject section */
@@ -238,6 +316,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A10000000000000000000224 /* Check module imports */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check module imports";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/Scripts/check-module-imports.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A10000000000000000000201 /* Sources */ = {
@@ -273,6 +374,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000101 /* Shelved */;
 			targetProxy = A10000000000000000000303 /* PBXContainerItemProxy */;
+		};
+		A10000000000000000000306 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000104 /* ModuleRules */;
+			targetProxy = A10000000000000000000305 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -455,6 +561,22 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000442 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A10000000000000000000443 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -494,7 +616,82 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A10000000000000000000441 /* Build configuration list for PBXAggregateTarget "ModuleRules" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000442 /* Debug */,
+				A10000000000000000000443 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A10000000000000000000700 /* XCLocalSwiftPackageReference "Packages" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000000000000000000600 /* Core */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Core;
+		};
+		A10000000000000000000601 /* Data */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Data;
+		};
+		A10000000000000000000602 /* Navigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Navigation;
+		};
+		A10000000000000000000603 /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Networking;
+		};
+		A10000000000000000000604 /* Persistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Persistence;
+		};
+		A10000000000000000000605 /* HomeFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HomeFeature;
+		};
+		A10000000000000000000606 /* SearchFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SearchFeature;
+		};
+		A10000000000000000000607 /* DetailFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DetailFeature;
+		};
+		A10000000000000000000608 /* CreatorFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CreatorFeature;
+		};
+		A10000000000000000000609 /* SeriesFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SeriesFeature;
+		};
+		A1000000000000000000060A /* LibraryFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LibraryFeature;
+		};
+		A1000000000000000000060B /* ReviewFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ReviewFeature;
+		};
+		A1000000000000000000060C /* StatsFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StatsFeature;
+		};
+		A1000000000000000000060D /* SettingsFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SettingsFeature;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10000000000000000000001 /* Project object */;
 }

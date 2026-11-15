@@ -1,5 +1,7 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Networking
 
 /// A fake HTTP client that answers from a closure and counts requests.
 ///

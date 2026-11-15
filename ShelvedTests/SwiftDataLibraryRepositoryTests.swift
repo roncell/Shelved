@@ -1,7 +1,9 @@
 import Foundation
 import SwiftData
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import Persistence
 
 /// Runs the real SwiftData repository against an in-memory store.
 ///

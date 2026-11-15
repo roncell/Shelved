@@ -1,5 +1,6 @@
 import Foundation
-@testable import Shelved
+@testable import Core
+@testable import Data
 
 /// A *spy*: answers like `StubCatalog`, and also records every call, so a
 /// test can check *how* a ViewModel used the catalog (how many requests,
@@ -11,8 +12,9 @@ import Foundation
 /// - **Mock**: a spy that knows its expected calls up front and fails the
 ///   test itself. Not used here; asserting on a spy's record in the test
 ///   keeps each expectation visible where it matters.
-/// - **Fake**: a real, lighter implementation. `SwiftDataLibraryRepository.inMemory()`
-///   is the real repository on a throwaway store; `PreviewCatalog` is a fake catalog.
+/// - **Fake**: a real, lighter implementation. `InMemoryLibraryRepository`
+///   and `PreviewCatalog` are fakes. (`SwiftDataLibraryRepository.inMemory()`
+///   is the real repository on a throwaway store, not a fake.)
 ///
 /// An actor, because the catalog is `Sendable` and called from async code:
 /// the actor keeps the call log safe without locks.

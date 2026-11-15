@@ -1,6 +1,9 @@
 import Foundation
 import Testing
-@testable import Shelved
+@testable import Core
+@testable import Data
+@testable import LibraryFeature
+@testable import Persistence
 
 private extension Loadable {
     var isFailed: Bool { if case .failed = self { true } else { false } }
@@ -9,7 +12,7 @@ private extension Loadable {
 @MainActor
 struct LibraryViewModelTests {
     @Test func loadSplitsBuiltInAndCustomShelves() async {
-        let viewModel = LibraryViewModel(library: SwiftDataLibraryRepository.preview())
+        let viewModel = LibraryViewModel(library: InMemoryLibraryRepository.preview())
 
         await viewModel.load()
 
@@ -28,7 +31,7 @@ struct LibraryViewModelTests {
     }
 
     @Test func duplicateNameShowsAnError() async {
-        let viewModel = LibraryViewModel(library: SwiftDataLibraryRepository.preview())
+        let viewModel = LibraryViewModel(library: InMemoryLibraryRepository.preview())
         await viewModel.load()
 
         await viewModel.createShelf(named: "book club")
@@ -38,7 +41,7 @@ struct LibraryViewModelTests {
     }
 
     @Test func deleteShelfRemovesIt() async throws {
-        let viewModel = LibraryViewModel(library: SwiftDataLibraryRepository.preview())
+        let viewModel = LibraryViewModel(library: InMemoryLibraryRepository.preview())
         await viewModel.load()
         let bookClub = try #require(viewModel.customShelves.first)
 

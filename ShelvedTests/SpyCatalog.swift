@@ -48,4 +48,8 @@ actor SpyCatalog: MediaCatalog {
     func works(by id: CreatorID, page: Int) async throws -> SearchPage {
         try await stub.works(by: id, page: page)
     }
+
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        try await stub.items(for: ids)
+    }
 }

@@ -14,4 +14,8 @@ nonisolated protocol MediaCatalog: Sendable {
     /// A creator's works, most popular first. Returns `SearchPage` because
     /// it's the same "page of items + is there more?" shape as search.
     func works(by id: CreatorID, page: Int) async throws -> SearchPage
+    /// Several items at once, keyed by the ID asked for (the item's own ID
+    /// may differ if the record was merged). Missing IDs are left out.
+    /// Used to put covers and years on a series from another source.
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem]
 }

@@ -12,14 +12,18 @@ final class ItemDetailViewModel {
     private(set) var shelves: [ShelfSummary] = []
     /// True when the network failed and we're showing the saved snapshot.
     private(set) var isShowingSavedCopy = false
+    /// "Book 1 of 6 · Dune". nil when not in a series, or the lookup failed.
+    private(set) var seriesMembership: SeriesMembership?
     var actionError: String?
 
     private let catalog: any MediaCatalog
+    private let series: any SeriesCatalog
     private let library: any LibraryRepository
 
-    init(id: MediaID, catalog: any MediaCatalog, library: any LibraryRepository) {
+    init(id: MediaID, catalog: any MediaCatalog, series: any SeriesCatalog, library: any LibraryRepository) {
         self.id = id
         self.catalog = catalog
+        self.series = series
         self.library = library
     }
 
@@ -55,6 +59,14 @@ final class ItemDetailViewModel {
             }
         }
         await refreshLibrary()
+        await loadSeries()
+    }
+
+    /// A second source, looked up after the detail because matching uses
+    /// the loaded title and authors. Failure hides the row, nothing more.
+    private func loadSeries() async {
+        guard let detail = state.value, detail.kind == .book else { return }
+        seriesMembership = try? await series.membership(of: detail.item)
     }
 
     func addToShelf(_ shelfID: ShelfID) async {

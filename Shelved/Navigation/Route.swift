@@ -7,6 +7,8 @@ import Foundation
 enum Route: Hashable, Sendable {
     case itemDetail(MediaID)
     case creator(CreatorID)
+    /// Every book in a series, in reading order.
+    case series(SeriesID)
     case shelf(ShelfID)
     /// Edit your rating, review, progress, and dates for a saved item.
     case review(MediaID)

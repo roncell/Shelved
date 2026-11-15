@@ -15,7 +15,7 @@ private extension Loadable {
 @MainActor
 struct SearchViewModelTests {
     @Test func blankQueryStaysIdle() async {
-        let viewModel = SearchViewModel(catalog: StubCatalog(), debounce: .zero)
+        let viewModel = SearchViewModel(catalog: StubCatalog(), series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "   "
 
         await viewModel.searchChanged()
@@ -25,7 +25,7 @@ struct SearchViewModelTests {
 
     @Test func searchLoadsFirstPage() async {
         let catalog = StubCatalog(pages: [1: SearchPage(items: [item("A"), item("B")], hasMore: true)])
-        let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: catalog, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
 
         await viewModel.searchChanged()
@@ -39,7 +39,7 @@ struct SearchViewModelTests {
             1: SearchPage(items: [item("A"), item("B")], hasMore: true),
             2: SearchPage(items: [item("B"), item("C")], hasMore: false),
         ])
-        let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: catalog, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
         await viewModel.searchChanged()
 
@@ -51,7 +51,7 @@ struct SearchViewModelTests {
 
     @Test func failureShowsError() async {
         let catalog = StubCatalog(error: URLError(.notConnectedToInternet))
-        let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: catalog, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
 
         await viewModel.searchChanged()
@@ -61,7 +61,7 @@ struct SearchViewModelTests {
 
     @Test func clearingQueryResetsToIdle() async {
         let catalog = StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)])
-        let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: catalog, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
         await viewModel.searchChanged()
 
@@ -77,7 +77,7 @@ struct SearchViewModelTests {
     /// call is cancelled while it waits out the debounce.
     @Test func typingFastSearchesOnlyTheLastQuery() async {
         let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
-        let viewModel = SearchViewModel(catalog: spy, debounce: .milliseconds(50))
+        let viewModel = SearchViewModel(catalog: spy, series: StubSeriesCatalog(), debounce: .milliseconds(50))
 
         viewModel.query = "du"
         let firstKeystroke = Task { await viewModel.searchChanged() }
@@ -94,7 +94,7 @@ struct SearchViewModelTests {
             1: SearchPage(items: [item("A")], hasMore: true),
             2: SearchPage(items: [item("B")], hasMore: false),
         ]))
-        let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: spy, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
         await viewModel.searchChanged()
 
@@ -108,7 +108,7 @@ struct SearchViewModelTests {
     /// Coming back from a detail screen re-runs `.task(id:)` with the same query.
     @Test func reappearingDoesNotSearchAgain() async {
         let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
-        let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
+        let viewModel = SearchViewModel(catalog: spy, series: StubSeriesCatalog(), debounce: .zero)
         viewModel.query = "dune"
         await viewModel.searchChanged()
 
@@ -120,7 +120,7 @@ struct SearchViewModelTests {
     /// A scope tap searches straight away with the new kind: no debounce.
     @Test func changingScopeSearchesThatKind() async {
         let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
-        let viewModel = SearchViewModel(catalog: spy, debounce: .seconds(60))
+        let viewModel = SearchViewModel(catalog: spy, series: StubSeriesCatalog(), debounce: .seconds(60))
         viewModel.query = "arrival"
         viewModel.scope = .films
         await viewModel.retry()                 // results for "arrival" in Films, skipping the debounce
@@ -129,5 +129,38 @@ struct SearchViewModelTests {
         await viewModel.searchChanged()         // would hang for 60s if it debounced
 
         #expect(await spy.searches.map(\.kind) == [.film, .show])
+    }
+
+    // MARK: - Series card
+
+    @Test func topBookInASeriesShowsTheCard() async {
+        let membership = SeriesMembership(seriesID: .wikidata("Q45875"), seriesName: "A Song of Ice and Fire",
+                                          position: "1", total: 5, entryCount: 7)
+        let viewModel = SearchViewModel(
+            catalog: StubCatalog(pages: [1: SearchPage(items: [item("A Game of Thrones")], hasMore: false)]),
+            series: StubSeriesCatalog(membershipResult: membership),
+            debounce: .zero
+        )
+        viewModel.query = "game of thrones"
+
+        await viewModel.searchChanged()
+
+        #expect(viewModel.seriesSuggestion == membership)
+    }
+
+    @Test func newSearchClearsTheCard() async {
+        let membership = SeriesMembership(seriesID: .wikidata("Q1"), seriesName: "S", position: "1", total: nil, entryCount: 2)
+        let viewModel = SearchViewModel(
+            catalog: StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]),
+            series: StubSeriesCatalog(membershipResult: membership),
+            debounce: .zero
+        )
+        viewModel.query = "a"
+        await viewModel.searchChanged()
+
+        viewModel.query = ""
+        await viewModel.searchChanged()
+
+        #expect(viewModel.seriesSuggestion == nil)
     }
 }

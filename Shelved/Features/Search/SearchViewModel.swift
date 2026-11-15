@@ -26,8 +26,12 @@ final class SearchViewModel {
     private(set) var hasMorePages = false
     private(set) var isLoadingNextPage = false
     private(set) var nextPageFailed = false
+    /// Set when the top book result is part of a series: "A Song of Ice
+    /// and Fire" above "A Game of Thrones". Shown as a card above the results.
+    private(set) var seriesSuggestion: SeriesMembership?
 
     private let catalog: any MediaCatalog
+    private let series: any SeriesCatalog
     private let debounce: Duration
 
     /// The query and scope the current results belong to.
@@ -36,8 +40,9 @@ final class SearchViewModel {
     private var nextPage = 1
 
     /// `debounce` is injectable so tests can pass `.zero` and run instantly.
-    init(catalog: any MediaCatalog, debounce: Duration = .milliseconds(350)) {
+    init(catalog: any MediaCatalog, series: any SeriesCatalog, debounce: Duration = .milliseconds(350)) {
         self.catalog = catalog
+        self.series = series
         self.debounce = debounce
     }
 
@@ -116,6 +121,7 @@ final class SearchViewModel {
         nextPage = 1
         hasMorePages = false
         nextPageFailed = false
+        seriesSuggestion = nil
         state = .loading
 
         do {
@@ -124,6 +130,7 @@ final class SearchViewModel {
             state = .loaded(page.items)
             hasMorePages = page.hasMore
             nextPage = 2
+            await suggestSeries(for: page.items, query: text, scope: searchScope)
         } catch {
             // Cancelled because a newer search took over or the view went away:
             // not an error worth showing.
@@ -132,7 +139,18 @@ final class SearchViewModel {
         }
     }
 
+    /// Only the *top* book is checked: one extra request per search, and a
+    /// series card for the 9th result would be noise. Failures just mean no
+    /// card; series are a bonus, never a reason to show an error.
+    private func suggestSeries(for items: [MediaItem], query: String, scope: SearchScope) async {
+        guard let topBook = items.prefix(3).first(where: { $0.kind == .book }) else { return }
+        let membership = try? await series.membership(of: topBook)
+        guard query == activeQuery, scope == activeScope, !Task.isCancelled else { return }
+        seriesSuggestion = membership
+    }
+
     private func reset() {
+        seriesSuggestion = nil
         activeQuery = ""
         nextPage = 1
         hasMorePages = false

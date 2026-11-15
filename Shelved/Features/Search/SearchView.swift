@@ -6,8 +6,8 @@ struct SearchView: View {
 
     /// Services come in through `init`, not the Environment, so the view
     /// can create its ViewModel right away. See `Dependencies`.
-    init(catalog: any MediaCatalog) {
-        _viewModel = State(initialValue: SearchViewModel(catalog: catalog))
+    init(catalog: any MediaCatalog, series: any SeriesCatalog) {
+        _viewModel = State(initialValue: SearchViewModel(catalog: catalog, series: series))
     }
 
     var body: some View {
@@ -55,6 +55,13 @@ struct SearchView: View {
 
         case .loaded(let items):
             List {
+                if let suggestion = viewModel.seriesSuggestion {
+                    Section {
+                        SeriesCard(membership: suggestion) {
+                            router.push(.series(suggestion.seriesID))
+                        }
+                    }
+                }
                 ForEach(items) { item in
                     Button {
                         router.push(.itemDetail(item.id))
@@ -77,7 +84,7 @@ struct SearchView: View {
 #Preview {
     let dependencies = Dependencies.preview()
     NavigationStack {
-        SearchView(catalog: dependencies.catalog).withRouteDestinations()
+        SearchView(catalog: dependencies.catalog, series: dependencies.series).withRouteDestinations()
     }
     .environment(dependencies)
     .environment(Router())

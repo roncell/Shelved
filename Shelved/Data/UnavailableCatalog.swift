@@ -16,4 +16,5 @@ nonisolated struct UnavailableCatalog: MediaCatalog {
     func detail(for id: MediaID) async throws -> MediaDetail { throw error }
     func creator(for id: CreatorID) async throws -> CreatorDetail { throw error }
     func works(by id: CreatorID, page: Int) async throws -> SearchPage { throw error }
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] { throw error }
 }

@@ -7,9 +7,10 @@ struct ItemDetailView: View {
     init(
         id: MediaID,
         catalog: any MediaCatalog,
+        series: any SeriesCatalog,
         library: any LibraryRepository
     ) {
-        _viewModel = State(initialValue: ItemDetailViewModel(id: id, catalog: catalog, library: library))
+        _viewModel = State(initialValue: ItemDetailViewModel(id: id, catalog: catalog, series: series, library: library))
     }
 
     var body: some View {
@@ -103,6 +104,17 @@ private struct DetailContent: View {
                 }
             }
 
+            if let membership = viewModel.seriesMembership {
+                Section {
+                    Button {
+                        router.push(.series(membership.seriesID))
+                    } label: {
+                        Label(membership.positionText, systemImage: "books.vertical")
+                    }
+                    .accessibilityHint(Text("Shows every book in the series"))
+                }
+            }
+
             if let libraryItem = viewModel.libraryItem {
                 YourNotesSection(item: libraryItem) {
                     router.push(.review(libraryItem.id))
@@ -168,7 +180,7 @@ private struct DetailContent: View {
 #Preview("Saved") {
     let dependencies = Dependencies.preview()
     NavigationStack {
-        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, library: dependencies.library)
+        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, series: dependencies.series, library: dependencies.library)
             .withRouteDestinations()
     }
     .environment(dependencies)
@@ -178,7 +190,7 @@ private struct DetailContent: View {
 #Preview("Film") {
     let dependencies = Dependencies.preview()
     NavigationStack {
-        ItemDetailView(id: PreviewCatalog.film.id, catalog: dependencies.catalog, library: dependencies.library)
+        ItemDetailView(id: PreviewCatalog.film.id, catalog: dependencies.catalog, series: dependencies.series, library: dependencies.library)
             .withRouteDestinations()
     }
     .environment(dependencies)
@@ -188,7 +200,7 @@ private struct DetailContent: View {
 #Preview("Not saved") {
     let dependencies = Dependencies.preview(library: (try? SwiftDataLibraryRepository.inMemory()) ?? .preview())
     NavigationStack {
-        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, library: dependencies.library)
+        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, series: dependencies.series, library: dependencies.library)
             .withRouteDestinations()
     }
     .environment(dependencies)

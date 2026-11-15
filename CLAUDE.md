@@ -204,13 +204,14 @@ ShelvedUITests/
 
 ### Phase 5.5 — Book series
 Goal: searching "game of thrones" offers the whole *A Song of Ice and Fire* series, and every book in a series links to the others in reading order.
-- [ ] **Spike first:** confirm a series source with good coverage. Open Library's series data is sparse free text. Candidate: **Wikidata** (free, no key): "part of the series" (P179) + "series ordinal" (P1545), linked back to Open Library work IDs via P648. Try 5–10 known series (ASOIAF, Harry Potter, Dune, Discworld, The Expanse) and record what's missing
-- [ ] Domain: `SeriesID` (enum, a case per source), `Series` (name, ordered entries), `SeriesEntry` (position, `MediaItem`); `MediaDetail` gains an optional `series` membership (series ID, name, position, total)
-- [ ] `SeriesCatalog` protocol + real implementation + fake; series lookups cached (they rarely change)
-- [ ] Detail screen: "Book 1 of 5 · A Song of Ice and Fire" row → Series screen
-- [ ] Series screen (`Route.series`): books in order with covers, years and your shelf status; "Add all to Want to Read"
-- [ ] Search: when a top result belongs to a series, show a series card above the results
-- [ ] Hide all series UI when no data is found; never show a wrong or partial order as complete
+- [x] **Spike first:** confirm a series source with good coverage. Open Library's series data is sparse free text. Candidate: **Wikidata** (free, no key): "part of the series" (P179) + "series ordinal" (P1545), linked back to Open Library work IDs via P648. Try 5–10 known series (ASOIAF, Harry Potter, Dune, Discworld, The Expanse) and record what's missing
+  - **Result (2026-11-14):** Wikidata works. Harry Potter 7/7, ASOIAF 1–7, The Expanse 1–9, Dune 1–6 ordered with Open Library IDs; Discworld 42 of 65 numbered. Problems found: Wikidata often holds a stale (merged) work ID (Dune is filed under `OL893415W`), so matching falls back to author ID + English title; translations share positions; some members have edition (`…M`) IDs, no English label, or no position. Covers come from one Open Library `key:(… OR …)` search.
+- [x] Domain: `SeriesID` (enum, a case per source), `Series` (name, ordered entries), `SeriesEntry` (position, title, optional work ID), `SeriesMembership` (series ID, name, position, total). Membership lives on `ItemDetailViewModel`, not `MediaDetail` (see decision log)
+- [x] `SeriesCatalog` protocol + real implementation + fake; series lookups cached (they rarely change)
+- [x] Detail screen: "Book 1 of 5 · A Song of Ice and Fire" row → Series screen
+- [x] Series screen (`Route.series`): books in order with covers, years and your shelf status; "Add all to Want to Read"
+- [x] Search: when a top result belongs to a series, show a series card above the results
+- [x] Hide all series UI when no data is found; never show a wrong or partial order as complete
 - **Learn:** adding a third data source behind a protocol, joining two APIs by ID, caching, designing UI that degrades gracefully when data is missing
 
 ### Phase 6 — Films & TV (TMDB)
@@ -285,3 +286,9 @@ Record notable architecture decisions here as the project evolves.
 | 2026-11-14 | TMDB "Read Access Token" sent as a Bearer header, from untracked `Config/Secrets.xcconfig` → Info.plist → `AppSecrets` | Out of git and out of URLs/logs. Still readable from the shipped app; real protection needs a proxy server. No token → `UnavailableCatalog`, books keep working |
 | 2026-11-14 | A person's TMDB works come back as one page (combined credits, talk/news shows dropped) | TMDB doesn't page combined credits; a few hundred rows is fine for a lazy List |
 | 2026-11-14 | Shelf names per kind: "Want to Read" / "Want to Watch" next to an item, "Want to Read/Watch" in the Library tab; films don't log progress, shows log episodes | Shelves are shared across kinds; names come from code, so no migration |
+| 2026-11-14 | Series from Wikidata (`WikidataSeriesCatalog`), matched by Open Library work ID **or** author ID + English title | Spike showed good coverage; the fallback is needed because Wikidata keeps stale merged work IDs |
+| 2026-11-14 | Series membership is loaded by `ItemDetailViewModel` from `SeriesCatalog`, not added to `MediaDetail` | `MediaDetail` comes from `MediaCatalog`; putting a second source in it would make Open Library code call Wikidata. Separate protocol, separate failure: a failed lookup just hides the row |
+| 2026-11-14 | Covers for a series via a new batch `MediaCatalog.items(for:)` (one Open Library search; merged IDs fetched one by one) | Joining two APIs by ID without N requests per series; results keyed by the requested ID so stale IDs still map to canonical items |
+| 2026-11-14 | Series cleanup: numeric positions only, one book per position (prefer one with a work ID, a real title, the lowest Q-number); "of N" only when positions run 1…N with no gaps | Wikidata is crowd-edited; a wrong total is worse than none |
+| 2026-11-14 | `WikidataSeriesCatalog` is an actor with an in-memory cache (including "no series") | Search, Detail and Series ask about the same book; series rarely change. No disk cache yet |
+| 2026-11-14 | "Add all to Want to Read" skips books already saved anywhere | Re-adding would move a finished book back to Want to Read |

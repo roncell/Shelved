@@ -90,6 +90,15 @@ nonisolated struct PreviewCatalog: MediaCatalog {
         }
     }
 
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        let known = Self.items + Self.works
+        var found: [MediaID: MediaItem] = [:]
+        for id in ids {
+            if let item = known.first(where: { $0.id == id }) { found[id] = item }
+        }
+        return found
+    }
+
     func works(by id: CreatorID, page: Int) async throws -> SearchPage {
         switch id {
         case .openLibraryAuthor: SearchPage(items: Self.works, hasMore: false)

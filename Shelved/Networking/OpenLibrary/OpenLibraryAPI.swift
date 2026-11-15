@@ -57,6 +57,19 @@ nonisolated enum OpenLibraryAPI {
         ])
     }
 
+    /// GET /search.json?q=key:(/works/OL1W OR /works/OL2W)
+    ///
+    /// Many works in one request, with covers and years. Merged (redirected)
+    /// IDs aren't in the search index, so callers fall back to `work(id:)`.
+    static func works(ids: [String]) -> Endpoint<OLSearchResponse> {
+        let keys = ids.map { "/works/\($0)" }.joined(separator: " OR ")
+        return Endpoint(host: host, path: "/search.json", queryItems: [
+            URLQueryItem(name: "q", value: "key:(\(keys))"),
+            URLQueryItem(name: "limit", value: String(ids.count)),
+            URLQueryItem(name: "fields", value: searchFields),
+        ])
+    }
+
     /// GET /works/OL893414W.json
     static func work(id: String) -> Endpoint<OLWork> {
         Endpoint(host: host, path: "/works/\(id).json")

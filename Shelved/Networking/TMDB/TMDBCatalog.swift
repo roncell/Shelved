@@ -62,4 +62,18 @@ nonisolated struct TMDBCatalog: MediaCatalog {
             throw CatalogError.unsupportedID
         }
     }
+
+    /// No batch endpoint on TMDB, so one detail request each, in parallel.
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        await withTaskGroup(of: (MediaID, MediaItem?).self) { group in
+            for id in ids where id.kind != .book {
+                group.addTask { (id, try? await detail(for: id).item) }
+            }
+            var found: [MediaID: MediaItem] = [:]
+            for await (id, item) in group {
+                if let item { found[id] = item }
+            }
+            return found
+        }
+    }
 }

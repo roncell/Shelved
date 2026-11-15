@@ -19,6 +19,7 @@ extension Dependencies {
             ?? UnavailableCatalog(.notConfigured)
         return Dependencies(
             catalog: CombinedCatalog(openLibrary: OpenLibraryCatalog(), tmdb: tmdb),
+            series: WikidataSeriesCatalog(),
             library: SwiftDataLibraryRepository.onDisk()
         )
     }
@@ -29,7 +30,11 @@ extension Dependencies {
     /// the test hook doesn't ship in release builds.
     static func uiTesting() -> Dependencies {
         do {
-            return Dependencies(catalog: PreviewCatalog(), library: try SwiftDataLibraryRepository.inMemory())
+            return Dependencies(
+                catalog: PreviewCatalog(),
+                series: PreviewSeriesCatalog(),
+                library: try SwiftDataLibraryRepository.inMemory()
+            )
         } catch {
             fatalError("Couldn't create the UI-testing library: \(error)")
         }

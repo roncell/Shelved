@@ -40,7 +40,7 @@ private struct TabStack: View {
     private var rootView: some View {
         switch tab {
         case .home: HomeView()
-        case .search: SearchView(catalog: dependencies.catalog)
+        case .search: SearchView(catalog: dependencies.catalog, series: dependencies.series)
         case .library: LibraryView(library: dependencies.library)
         case .stats: StatsView()
         case .settings: SettingsView()

@@ -57,6 +57,33 @@ nonisolated struct OpenLibraryCatalog: MediaCatalog {
         }
     }
 
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        let workIDs = ids.compactMap { id -> String? in
+            if case .openLibraryWork(let workID) = id { workID } else { nil }
+        }
+        guard !workIDs.isEmpty else { return [:] }
+
+        let response = try await client.send(OpenLibraryAPI.works(ids: workIDs))
+        var found: [MediaID: MediaItem] = [:]
+        for item in response.docs.compactMap(OpenLibraryMapper.item(from:)) {
+            found[item.id] = item
+        }
+
+        // Merged records aren't in the search index under their old ID.
+        // Fetch those one by one: `detail` follows the redirect, and the
+        // result is keyed by the old ID but carries the canonical one.
+        let missing = workIDs.map(MediaID.openLibraryWork).filter { found[$0] == nil }
+        await withTaskGroup(of: (MediaID, MediaItem?).self) { group in
+            for id in missing {
+                group.addTask { (id, try? await detail(for: id).item) }
+            }
+            for await (id, item) in group {
+                if let item { found[id] = item }
+            }
+        }
+        return found
+    }
+
     private static func page(from response: OLSearchResponse) -> SearchPage {
         let items = response.docs.compactMap(OpenLibraryMapper.item(from:))
         let hasMore = response.start + response.docs.count < response.numFound

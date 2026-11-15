@@ -72,6 +72,27 @@ final class ShelvedUITests: XCTestCase {
         XCTAssertTrue(element(in: app, labelStartingWith: "Book Club").exists)
     }
 
+    /// Phase 5.5: search → series card → add the whole series → Library.
+    @MainActor
+    func testAddingASeriesFillsWantTo() {
+        let app = launch()
+
+        app.tabBars.buttons["Search"].tap()
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("dune")
+
+        // The card reads "Series, Dune, 3 books", so it doesn't clash with the "Dune" result row.
+        element(in: app, labelStartingWith: "Series").tap()
+        element(in: app, labelStartingWith: "Add").tap()
+
+        app.tabBars.buttons["Library"].tap()
+        element(in: app, labelStartingWith: "Want to Read").tap()
+
+        XCTAssertTrue(element(in: app, labelStartingWith: "Dune Messiah").exists)
+    }
+
     // MARK: - Helpers
 
     @MainActor

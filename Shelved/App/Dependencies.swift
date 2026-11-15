@@ -17,10 +17,12 @@ import Observation
 @Observable
 final class Dependencies {
     let catalog: any MediaCatalog
+    let series: any SeriesCatalog
     let library: any LibraryRepository
 
-    init(catalog: any MediaCatalog, library: any LibraryRepository) {
+    init(catalog: any MediaCatalog, series: any SeriesCatalog, library: any LibraryRepository) {
         self.catalog = catalog
+        self.series = series
         self.library = library
     }
 }

@@ -11,6 +11,7 @@ nonisolated struct StubCatalog: MediaCatalog {
     var detail: MediaDetail?
     var creator: CreatorDetail?
     var worksPages: [Int: SearchPage] = [:]
+    var items: [MediaID: MediaItem] = [:]
     /// Thrown by every call when set.
     var error: (any Error)?
     /// Thrown only by `works(by:page:)`, to test a partial failure.
@@ -31,6 +32,11 @@ nonisolated struct StubCatalog: MediaCatalog {
         if let error { throw error }
         guard let creator else { throw URLError(.fileDoesNotExist) }
         return creator
+    }
+
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        if let error { throw error }
+        return items.filter { ids.contains($0.key) }
     }
 
     func works(by id: CreatorID, page: Int) async throws -> SearchPage {

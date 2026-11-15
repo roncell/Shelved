@@ -12,9 +12,11 @@ struct RouteDestinations: ViewModifier {
         content.navigationDestination(for: Route.self) { route in
             switch route {
             case .itemDetail(let id):
-                ItemDetailView(id: id, catalog: dependencies.catalog, library: dependencies.library)
+                ItemDetailView(id: id, catalog: dependencies.catalog, series: dependencies.series, library: dependencies.library)
             case .creator(let id):
                 CreatorView(id: id, catalog: dependencies.catalog)
+            case .series(let id):
+                SeriesView(id: id, series: dependencies.series, catalog: dependencies.catalog, library: dependencies.library)
             case .shelf(let id):
                 ShelfView(id: id, library: dependencies.library)
             case .review(let id):

@@ -58,6 +58,25 @@ nonisolated struct CombinedCatalog: MediaCatalog {
         try await source(for: id).works(by: id, page: page)
     }
 
+    func items(for ids: [MediaID]) async throws -> [MediaID: MediaItem] {
+        // Split by source, ask both in parallel, merge.
+        var openLibraryIDs: [MediaID] = []
+        var tmdbIDs: [MediaID] = []
+        for id in ids {
+            switch id {
+            case .openLibraryWork: openLibraryIDs.append(id)
+            case .tmdbFilm, .tmdbShow: tmdbIDs.append(id)
+            }
+        }
+        async let fromOpenLibrary = Self.items(for: openLibraryIDs, in: openLibrary)
+        async let fromTMDB = Self.items(for: tmdbIDs, in: tmdb)
+        return try await fromOpenLibrary.merging(fromTMDB) { first, _ in first }
+    }
+
+    private static func items(for ids: [MediaID], in source: any MediaCatalog) async throws -> [MediaID: MediaItem] {
+        ids.isEmpty ? [:] : try await source.items(for: ids)
+    }
+
     // MARK: - Routing
 
     private func sources(for kind: MediaKind?) -> [any MediaCatalog] {

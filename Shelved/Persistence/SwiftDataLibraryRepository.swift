@@ -9,10 +9,6 @@ import SwiftData
 /// context does its work on the main thread anyway.
 @MainActor
 final class SwiftDataLibraryRepository: LibraryRepository {
-    /// The app's on-disk library. Phase 5 replaces this global with a
-    /// `Dependencies` container built at launch.
-    static let shared = makeShared()
-
     private let container: ModelContainer
     private let context: ModelContext
     private let now: () -> Date
@@ -33,7 +29,9 @@ final class SwiftDataLibraryRepository: LibraryRepository {
         return try SwiftDataLibraryRepository(container: container, now: now)
     }
 
-    private static func makeShared() -> SwiftDataLibraryRepository {
+    /// The app's on-disk library. Called once, by `Dependencies.live()`;
+    /// two repositories on the same store would each keep their own context.
+    static func onDisk() -> SwiftDataLibraryRepository {
         do {
             let container = try ModelContainer(for: Shelf.self, LibraryEntry.self)
             return try SwiftDataLibraryRepository(container: container)

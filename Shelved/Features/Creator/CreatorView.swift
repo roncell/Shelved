@@ -4,7 +4,7 @@ struct CreatorView: View {
     @Environment(Router.self) private var router
     @State private var viewModel: CreatorViewModel
 
-    init(id: CreatorID, catalog: any MediaCatalog = OpenLibraryCatalog()) {
+    init(id: CreatorID, catalog: any MediaCatalog) {
         _viewModel = State(initialValue: CreatorViewModel(id: id, catalog: catalog))
     }
 
@@ -120,9 +120,11 @@ private struct CreatorHeader: View {
 }
 
 #Preview {
+    let dependencies = Dependencies.preview()
     NavigationStack {
-        CreatorView(id: .openLibraryAuthor("OL79034A"), catalog: PreviewCatalog())
+        CreatorView(id: .openLibraryAuthor("OL79034A"), catalog: dependencies.catalog)
             .withRouteDestinations()
     }
+    .environment(dependencies)
     .environment(Router())
 }

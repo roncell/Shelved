@@ -70,4 +70,50 @@ struct SearchViewModelTests {
 
         #expect(viewModel.state.isIdle)
     }
+
+    // MARK: - Spy tests: *how* the catalog is called
+
+    /// Mirrors what `.task(id: query)` does on each keystroke: the previous
+    /// call is cancelled while it waits out the debounce.
+    @Test func typingFastSearchesOnlyTheLastQuery() async {
+        let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
+        let viewModel = SearchViewModel(catalog: spy, debounce: .milliseconds(50))
+
+        viewModel.query = "du"
+        let firstKeystroke = Task { await viewModel.queryChanged() }
+        firstKeystroke.cancel()
+        viewModel.query = "dune"
+        await viewModel.queryChanged()
+        await firstKeystroke.value
+
+        #expect(await spy.searches == [SpyCatalog.SearchCall(query: "dune", page: 1)])
+    }
+
+    @Test func nextPageAsksForPageTwoOfTheSameQuery() async {
+        let spy = SpyCatalog(StubCatalog(pages: [
+            1: SearchPage(items: [item("A")], hasMore: true),
+            2: SearchPage(items: [item("B")], hasMore: false),
+        ]))
+        let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
+        viewModel.query = "dune"
+        await viewModel.queryChanged()
+
+        await viewModel.loadNextPage()
+        await viewModel.loadNextPage()   // no more pages: must not call again
+
+        #expect(await spy.searches.map(\.page) == [1, 2])
+        #expect(await spy.searches.allSatisfy { $0.query == "dune" })
+    }
+
+    /// Coming back from a detail screen re-runs `.task(id:)` with the same query.
+    @Test func reappearingDoesNotSearchAgain() async {
+        let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
+        let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
+        viewModel.query = "dune"
+        await viewModel.queryChanged()
+
+        await viewModel.queryChanged()
+
+        #expect(await spy.searches.count == 1)
+    }
 }

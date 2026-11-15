@@ -6,8 +6,8 @@ struct ItemDetailView: View {
 
     init(
         id: MediaID,
-        catalog: any MediaCatalog = OpenLibraryCatalog(),
-        library: any LibraryRepository = SwiftDataLibraryRepository.shared
+        catalog: any MediaCatalog,
+        library: any LibraryRepository
     ) {
         _viewModel = State(initialValue: ItemDetailViewModel(id: id, catalog: catalog, library: library))
     }
@@ -142,25 +142,21 @@ private struct DetailContent: View {
 }
 
 #Preview("Saved") {
+    let dependencies = Dependencies.preview()
     NavigationStack {
-        ItemDetailView(
-            id: PreviewCatalog.items[0].id,
-            catalog: PreviewCatalog(),
-            library: SwiftDataLibraryRepository.preview()
-        )
-        .withRouteDestinations()
+        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, library: dependencies.library)
+            .withRouteDestinations()
     }
+    .environment(dependencies)
     .environment(Router())
 }
 
 #Preview("Not saved") {
+    let dependencies = Dependencies.preview(library: (try? SwiftDataLibraryRepository.inMemory()) ?? .preview())
     NavigationStack {
-        ItemDetailView(
-            id: PreviewCatalog.items[0].id,
-            catalog: PreviewCatalog(),
-            library: (try? SwiftDataLibraryRepository.inMemory()) ?? .preview()
-        )
-        .withRouteDestinations()
+        ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, library: dependencies.library)
+            .withRouteDestinations()
     }
+    .environment(dependencies)
     .environment(Router())
 }

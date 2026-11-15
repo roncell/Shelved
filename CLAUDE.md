@@ -36,12 +36,13 @@ This is a **learning project**. The goal is to practice production-grade iOS arc
 ### Tabs
 1. **Home** — currently reading/watching, recently added, quick stats
 2. **Search** — unified search across books/films/shows, with filters and pagination
-3. **Library** — shelves (Want to Read/Watch, In Progress, Finished, Abandoned, custom shelves)
+3. **Library** — shelves (Want to Read/Watch, In Progress, Finished, custom shelves)
 4. **Stats** — items finished per month, ratings distribution, genres, streaks (Swift Charts)
 5. **Settings** — appearance, data export/import, clear cache, about
 
 ### Core flows
 - Search → Item Detail → Creator (author/director/actor) → their other works → Item Detail → … (unbounded depth)
+- Search or Item Detail → Series → every book in reading order → Item Detail
 - Add to shelf, change shelf, remove
 - Rate (0.5–5 stars) and write a review
 - Log progress (pages / episodes) and start/finish dates
@@ -95,6 +96,7 @@ Shelf         — name, isSystem, sortOrder
   enum Route: Hashable {
       case itemDetail(MediaID)
       case creator(CreatorID)
+      case series(SeriesID)      // Phase 5.5
       case shelf(ShelfID)
       case review(MediaID)
   }
@@ -178,25 +180,36 @@ ShelvedUITests/
 - **Learn:** async/await, `Codable`, structured concurrency, task cancellation on new queries, separating DTOs from the domain
 
 ### Phase 3 — Detail & creator flow
-- [ ] Item detail screen (full metadata, add-to-shelf button)
-- [ ] Creator screen listing their other works
-- [ ] Infinite drill-down: detail → creator → work → …
+- [x] Item detail screen (full metadata, add-to-shelf button — disabled until Phase 4 wires it to shelves)
+- [x] Creator screen listing their other works
+- [x] Infinite drill-down: detail → creator → work → …
 - **Learn:** passing IDs (not objects) through routes, each screen loading its own data
 
 ### Phase 4 — Library & persistence
-- [ ] SwiftData models: `LibraryEntry`, `Shelf`
-- [ ] `LibraryRepository` protocol + SwiftData implementation
-- [ ] Shelves screen, shelf detail, move/remove items
-- [ ] Ratings, reviews, progress, dates
-- [ ] Offline: saved items show without a network connection
+- [x] SwiftData models: `LibraryEntry`, `Shelf`
+- [x] `LibraryRepository` protocol + SwiftData implementation
+- [x] Shelves screen, shelf detail, move/remove items
+- [x] Ratings, reviews, progress, dates
+- [x] Offline: saved items show without a network connection
 - **Learn:** SwiftData modeling, the repository pattern, keeping persistence out of views
 
 ### Phase 5 — Dependency injection & tests
-- [ ] Protocols for every service, `Dependencies` container in the Environment
-- [ ] Mocks/fakes for previews and tests
-- [ ] Unit tests: mappers, ViewModels, repositories
-- [ ] 2–3 UI tests (search → add to shelf → appears in Library)
+- [x] Protocols for every service, `Dependencies` container in the Environment
+- [x] Mocks/fakes for previews and tests
+- [x] Unit tests: mappers, ViewModels, repositories
+- [x] 2–3 UI tests (search → add to shelf → appears in Library)
 - **Learn:** testability as a design goal, the difference between fakes and mocks
+
+### Phase 5.5 — Book series
+Goal: searching "game of thrones" offers the whole *A Song of Ice and Fire* series, and every book in a series links to the others in reading order.
+- [ ] **Spike first:** confirm a series source with good coverage. Open Library's series data is sparse free text. Candidate: **Wikidata** (free, no key): "part of the series" (P179) + "series ordinal" (P1545), linked back to Open Library work IDs via P648. Try 5–10 known series (ASOIAF, Harry Potter, Dune, Discworld, The Expanse) and record what's missing
+- [ ] Domain: `SeriesID` (enum, a case per source), `Series` (name, ordered entries), `SeriesEntry` (position, `MediaItem`); `MediaDetail` gains an optional `series` membership (series ID, name, position, total)
+- [ ] `SeriesCatalog` protocol + real implementation + fake; series lookups cached (they rarely change)
+- [ ] Detail screen: "Book 1 of 5 · A Song of Ice and Fire" row → Series screen
+- [ ] Series screen (`Route.series`): books in order with covers, years and your shelf status; "Add all to Want to Read"
+- [ ] Search: when a top result belongs to a series, show a series card above the results
+- [ ] Hide all series UI when no data is found; never show a wrong or partial order as complete
+- **Learn:** adding a third data source behind a protocol, joining two APIs by ID, caching, designing UI that degrades gracefully when data is missing
 
 ### Phase 6 — Films & TV (TMDB)
 - [ ] TMDB client behind the same search/detail protocols
@@ -223,9 +236,13 @@ ShelvedUITests/
 
 ### Stretch goals
 - [ ] Rewrite one feature (e.g., Search) in The Composable Architecture and compare with MVVM
-- [ ] iCloud sync via CloudKit
+- [ ] iCloud sync via CloudKit (now part of Version 2, phase V2.0)
 - [ ] iPad layout with `NavigationSplitView`
 - [ ] Barcode scanning to add books by ISBN
+
+## Version 2 — Book clubs & curated shelves
+Planned in **`PLAN-V2.md`**: book clubs with friends (V2.0–V2.5) and app-curated shelves from genres and your interests (V2.6–V2.7). Don't start it until Version 1 (Phases 1–8) ships, and don't add club features to V1 code.
+When V1 work touches persistence, keep the `@Model`s CloudKit-shaped (see the 2026-11-11 decision), since V2 syncs them.
 
 ## Decision log
 Record notable architecture decisions here as the project evolves.
@@ -241,4 +258,22 @@ Record notable architecture decisions here as the project evolves.
 | 2026-10-30 | Debounce with `.task(id: query)` + `Task.sleep`, no Combine | SwiftUI cancels the stale task on each keystroke; cancellation propagates to URLSession |
 | 2026-10-30 | `AsyncImage` for covers, wrapped in `CoverImage` | No dependency yet; no disk cache, so swap the loader inside `CoverImage` if it becomes a problem |
 | 2026-11-06 | Search-as-you-type: last word sent as a prefix (`du` → `du*`) in `OpenLibraryAPI.prefixQuery` | Open Library matches whole words; the wildcard is Open Library query syntax, so it lives in the Open Library layer, not the ViewModel |
-| 2026-11-06 | Search results sorted by `sort=readinglog` (most-read first) | Prefix matches all score the same, so relevance order is lost; popularity is a sensible order for a tracker |
+| 2026-11-09 | Catalog follows Open Library `/type/redirect` records (max 3 hops) and returns the canonical ID | Merged records leave stale IDs behind (Home's Dune `OL893415W` was one); routes, deep links and saved entries all carry IDs |
+| 2026-11-09 | Creator works via `search.json?q=author_key:…`, not `/authors/{id}/works.json` | Popularity ranking, covers and years, and reuses the search DTO/mapper; the works endpoint sorts by last edit with no covers |
+| 2026-11-09 | Creator screen loads profile + first works page with `async let`; works fail independently | Two fixed calls in parallel; a failed works list shouldn't hide the profile |
+| 2026-11-09 | Shared list pieces (`MediaItemRow`, `LoadMoreFooter`, `ExpandableText`) live in DesignSystem/ | Search and Creator both use them, and features must not import each other once modularized |
+| 2026-11-11 | `LibraryRepository` returns value types (`ShelfSummary`, `LibraryItem`), never `@Model` objects; no `@Query` | Keeps SwiftData out of views/ViewModels. Cost: screens re-fetch on every appear instead of auto-updating |
+| 2026-11-11 | Repository is `@MainActor` on the main context, but its protocol methods are `async` | Simple now; moving to a background `@ModelActor` later changes no call sites |
+| 2026-11-11 | `@Model`s are CloudKit-shaped: defaults everywhere, optional relationships, no `@Attribute(.unique)` | CloudKit sync is a stretch goal and model changes need migrations; uniqueness is enforced in the repository |
+| 2026-11-11 | Entries store a media snapshot; IDs stored as `storageKey` strings ("openlibrary:work:OL…") | Shelves render offline; `#Predicate` can't match inside an enum with associated values |
+| 2026-11-11 | One shelf per item; deleting a custom shelf moves its items to Want to Read | Matches the spec's single `shelf` field; deleting a shelf shouldn't delete ratings |
+| 2026-11-11 | Detail falls back to the saved snapshot when the catalog fails | Saved books open offline; done in `ItemDetailViewModel` for now, a candidate for a merging repository later |
+| 2026-11-11 | Repository injected as `SwiftDataLibraryRepository.shared` default argument | Same stopgap as the catalog; Phase 5 replaces both with an Environment container. Known gap: screens pushed from a preview use the real store |
+| 2026-11-13 | Version 2 = book clubs with friends + curated shelves, planned in `PLAN-V2.md` | Keeps V1 scope stable; both build on the finished library and TMDB support |
+| 2026-11-13 | Removed the Abandoned system shelf | Not needed; a custom shelf covers it. Existing stores: an empty legacy row is deleted, one with items becomes a custom "Abandoned" shelf so nothing is lost |
+| 2026-11-13 | Book series added to V1 as Phase 5.5, after DI & tests | Series lookups need a new source behind a protocol, easier once the Phase 5 container exists. Numbered 5.5 so existing "Phase 6/7/8" references in code and docs stay valid |
+| 2026-11-14 | `Dependencies` (`@MainActor @Observable` class) injected with `.environment(_:)`; read only by `TabStack` and `RouteDestinations`, which pass services into screen `init`s | Composition root in one place; screens declare exactly what they need and still create their ViewModel in `init`. No default value: a missing container crashes on first push instead of silently using the real store |
+| 2026-11-14 | Kept the names `MediaCatalog` / `LibraryRepository` instead of `MediaSearching` / `LibraryStoring` | Already protocols with fakes; renaming would be churn with no testability gain |
+| 2026-11-14 | `SwiftDataLibraryRepository.shared` removed; `Dependencies.live()` creates the one on-disk repository | No global left for a preview or test to reach by accident |
+| 2026-11-14 | UI tests launch with `-ui-testing` → `PreviewCatalog` + empty in-memory library (Debug builds only) | Offline, fast, clean slate per test. Cost: a small test hook in app code, compiled out of Release |
+| 2026-11-14 | Test doubles: stubs (`StubCatalog`, `FailingLibraryRepository`), a spy (`SpyCatalog`), fakes (in-memory repository, `PreviewCatalog`); no mocks | Spies keep assertions in the test where they're readable; mocks that verify themselves add a framework-like layer for little gain here |

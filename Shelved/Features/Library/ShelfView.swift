@@ -4,7 +4,7 @@ struct ShelfView: View {
     @Environment(Router.self) private var router
     @State private var viewModel: ShelfViewModel
 
-    init(id: ShelfID, library: any LibraryRepository = SwiftDataLibraryRepository.shared) {
+    init(id: ShelfID, library: any LibraryRepository) {
         _viewModel = State(initialValue: ShelfViewModel(id: id, library: library))
     }
 
@@ -86,5 +86,6 @@ struct ShelfView: View {
                 .withRouteDestinations()
         }
     }
+    .environment(Dependencies.preview(library: library))
     .environment(Router())
 }

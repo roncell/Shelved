@@ -4,9 +4,9 @@ struct SearchView: View {
     @Environment(Router.self) private var router
     @State private var viewModel: SearchViewModel
 
-    /// The catalog is passed in so previews can use fake data.
-    /// Phase 5 replaces this with a dependency container in the Environment.
-    init(catalog: any MediaCatalog = OpenLibraryCatalog()) {
+    /// Services come in through `init`, not the Environment, so the view
+    /// can create its ViewModel right away. See `Dependencies`.
+    init(catalog: any MediaCatalog) {
         _viewModel = State(initialValue: SearchViewModel(catalog: catalog))
     }
 
@@ -70,8 +70,10 @@ struct SearchView: View {
 }
 
 #Preview {
+    let dependencies = Dependencies.preview()
     NavigationStack {
-        SearchView(catalog: PreviewCatalog()).withRouteDestinations()
+        SearchView(catalog: dependencies.catalog).withRouteDestinations()
     }
+    .environment(dependencies)
     .environment(Router())
 }

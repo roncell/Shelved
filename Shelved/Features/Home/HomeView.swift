@@ -16,5 +16,6 @@ struct HomeView: View {
 
 #Preview {
     NavigationStack { HomeView().withRouteDestinations() }
+        .environment(Dependencies.preview())
         .environment(Router())
 }

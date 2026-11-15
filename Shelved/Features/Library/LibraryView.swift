@@ -6,8 +6,7 @@ struct LibraryView: View {
     @State private var isNamingShelf = false
     @State private var newShelfName = ""
 
-    /// Phase 5 replaces the `.shared` default with a container in the Environment.
-    init(library: any LibraryRepository = SwiftDataLibraryRepository.shared) {
+    init(library: any LibraryRepository) {
         _viewModel = State(initialValue: LibraryViewModel(library: library))
     }
 
@@ -109,9 +108,11 @@ struct LibraryView: View {
 }
 
 #Preview {
+    let dependencies = Dependencies.preview()
     NavigationStack {
-        LibraryView(library: SwiftDataLibraryRepository.preview())
+        LibraryView(library: dependencies.library)
             .withRouteDestinations()
     }
+    .environment(dependencies)
     .environment(Router())
 }

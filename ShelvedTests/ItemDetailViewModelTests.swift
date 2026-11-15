@@ -41,4 +41,27 @@ struct ItemDetailViewModelTests {
         #expect(viewModel.state.value == nil)
         #expect(!viewModel.isShowingSavedCopy)
     }
+
+    /// Returning from the review screen re-runs `.task`; the remote detail
+    /// is kept and only the library part is re-read.
+    @Test func comingBackDoesNotRefetchDetail() async throws {
+        let spy = SpyCatalog(StubCatalog(detail: dune))
+        let viewModel = ItemDetailViewModel(id: dune.id, catalog: spy, library: try SwiftDataLibraryRepository.inMemory())
+
+        await viewModel.loadIfNeeded()
+        await viewModel.loadIfNeeded()
+
+        #expect(await spy.detailRequests == [dune.id])
+    }
+
+    /// A broken local store shouldn't hide a book the network loaded fine.
+    @Test func libraryFailureStillShowsTheBook() async {
+        let viewModel = ItemDetailViewModel(id: dune.id, catalog: StubCatalog(detail: dune), library: FailingLibraryRepository())
+
+        await viewModel.load()
+
+        #expect(viewModel.state.value?.title == "Dune")
+        #expect(viewModel.actionError != nil)
+        #expect(viewModel.libraryItem == nil)
+    }
 }

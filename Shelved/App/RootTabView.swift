@@ -25,6 +25,7 @@ struct RootTabView: View {
 private struct TabStack: View {
     let tab: AppTab
     @Bindable var router: Router
+    @Environment(Dependencies.self) private var dependencies
 
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -39,8 +40,8 @@ private struct TabStack: View {
     private var rootView: some View {
         switch tab {
         case .home: HomeView()
-        case .search: SearchView()
-        case .library: LibraryView()
+        case .search: SearchView(catalog: dependencies.catalog)
+        case .library: LibraryView(library: dependencies.library)
         case .stats: StatsView()
         case .settings: SettingsView()
         }
@@ -49,4 +50,5 @@ private struct TabStack: View {
 
 #Preview {
     RootTabView()
+        .environment(Dependencies.preview())
 }

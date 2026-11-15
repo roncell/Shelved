@@ -4,7 +4,7 @@ struct ReviewView: View {
     @Environment(Router.self) private var router
     @State private var viewModel: ReviewViewModel
 
-    init(id: MediaID, library: any LibraryRepository = SwiftDataLibraryRepository.shared) {
+    init(id: MediaID, library: any LibraryRepository) {
         _viewModel = State(initialValue: ReviewViewModel(id: id, library: library))
     }
 

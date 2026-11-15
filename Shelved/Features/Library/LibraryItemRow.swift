@@ -26,11 +26,7 @@ struct LibraryItemRow: View {
     }
 
     private var progressText: String? {
-        switch (item.log.progress, item.log.progressTotal) {
-        case let (page?, total?): String(localized: "Page \(page) of \(total)")
-        case let (page?, nil): String(localized: "Page \(page)")
-        default: nil
-        }
+        item.media.kind.progressText(item.log.progress, total: item.log.progressTotal)
     }
 }
 

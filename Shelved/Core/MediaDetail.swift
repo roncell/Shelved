@@ -21,4 +21,11 @@ nonisolated struct MediaDetail: Hashable, Sendable {
     let characters: [String]
     let timePeriods: [String]
     let links: [MediaLink]
+
+    // Films and shows only. Defaulted so book code (and the saved-copy
+    // fallback) doesn't have to spell out fields it never has.
+    var cast: [CastCredit] = []
+    var runtimeMinutes: Int?
+    var seasonCount: Int?
+    var episodeCount: Int?
 }

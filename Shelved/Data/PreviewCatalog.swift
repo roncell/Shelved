@@ -10,7 +10,32 @@ nonisolated struct PreviewCatalog: MediaCatalog {
         MediaItem(id: .openLibraryWork("OL59800W"), kind: .book, title: "The Left Hand of Darkness",
                   creators: [CreatorSummary(id: .openLibraryAuthor("OL31353A"), name: "Ursula K. Le Guin")],
                   coverURL: nil, year: 1969),
+        film,
+        show,
     ]
+
+    static let villeneuve = CreatorSummary(id: .tmdbPerson(137427), name: "Denis Villeneuve")
+
+    static let film = MediaItem(id: .tmdbFilm(329865), kind: .film, title: "Arrival",
+                                creators: [villeneuve], coverURL: nil, year: 2016)
+
+    static let show = MediaItem(id: .tmdbShow(95396), kind: .show, title: "Severance",
+                                creators: [CreatorSummary(id: .tmdbPerson(1215054), name: "Dan Erickson")],
+                                coverURL: nil, year: 2022)
+
+    static let filmDetail = MediaDetail(
+        id: film.id, kind: .film, title: film.title,
+        creators: [villeneuve],
+        coverURL: nil, year: 2016,
+        summary: "A linguist is recruited to communicate with alien visitors.",
+        subjects: ["Drama", "Science Fiction"],
+        places: [], characters: [], timePeriods: [], links: [],
+        cast: [
+            CastCredit(person: CreatorSummary(id: .tmdbPerson(9273), name: "Amy Adams"), character: "Louise Banks"),
+            CastCredit(person: CreatorSummary(id: .tmdbPerson(17604), name: "Jeremy Renner"), character: "Ian Donnelly"),
+        ],
+        runtimeMinutes: 116
+    )
 
     static let detail = MediaDetail(
         id: .openLibraryWork("OL893414W"), kind: .book, title: "Dune",
@@ -38,19 +63,37 @@ nonisolated struct PreviewCatalog: MediaCatalog {
                   creators: [herbert], coverURL: nil, year: 1969),
     ]
 
-    func search(query: String, page: Int) async throws -> SearchPage {
-        SearchPage(items: Self.items, hasMore: false)
+    static let director = CreatorDetail(
+        id: villeneuve.id, name: villeneuve.name,
+        bio: "Denis Villeneuve is a Canadian filmmaker known for Arrival, Blade Runner 2049 and Dune.",
+        birthDate: "October 3, 1967", deathDate: nil,
+        photoURL: nil
+    )
+
+    func search(query: String, kind: MediaKind?, page: Int) async throws -> SearchPage {
+        SearchPage(items: Self.items.filter { kind == nil || $0.kind == kind }, hasMore: false)
     }
 
+    /// Answers by kind, so a film opens a film even though there's one detail per kind.
     func detail(for id: MediaID) async throws -> MediaDetail {
-        Self.detail
+        switch id {
+        case .openLibraryWork: Self.detail
+        case .tmdbFilm: Self.filmDetail
+        case .tmdbShow: MediaDetail(saved: Self.show)
+        }
     }
 
     func creator(for id: CreatorID) async throws -> CreatorDetail {
-        Self.creator
+        switch id {
+        case .openLibraryAuthor: Self.creator
+        case .tmdbPerson: Self.director
+        }
     }
 
     func works(by id: CreatorID, page: Int) async throws -> SearchPage {
-        SearchPage(items: Self.works, hasMore: false)
+        switch id {
+        case .openLibraryAuthor: SearchPage(items: Self.works, hasMore: false)
+        case .tmdbPerson: SearchPage(items: [Self.film], hasMore: false)
+        }
     }
 }

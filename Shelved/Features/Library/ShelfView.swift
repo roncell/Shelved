@@ -43,7 +43,7 @@ struct ShelfView: View {
             ContentUnavailableView(
                 "Nothing here yet",
                 systemImage: viewModel.shelf?.systemImage ?? "books.vertical",
-                description: Text("Find a book in Search and add it to this shelf.")
+                description: Text("Find something in Search and add it to this shelf.")
             )
 
         case .loaded(let items):

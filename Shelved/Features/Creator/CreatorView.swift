@@ -23,7 +23,7 @@ struct CreatorView: View {
 
         case .failed(let error):
             ContentUnavailableView {
-                Label("Couldn't load this author", systemImage: "exclamationmark.triangle")
+                Label("Couldn't load this person", systemImage: "exclamationmark.triangle")
             } description: {
                 Text(error.userMessage)
             } actions: {
@@ -119,7 +119,17 @@ private struct CreatorHeader: View {
     }
 }
 
-#Preview {
+#Preview("Director") {
+    let dependencies = Dependencies.preview()
+    NavigationStack {
+        CreatorView(id: PreviewCatalog.villeneuve.id, catalog: dependencies.catalog)
+            .withRouteDestinations()
+    }
+    .environment(dependencies)
+    .environment(Router())
+}
+
+#Preview("Author") {
     let dependencies = Dependencies.preview()
     NavigationStack {
         CreatorView(id: .openLibraryAuthor("OL79034A"), catalog: dependencies.catalog)

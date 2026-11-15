@@ -19,6 +19,7 @@ import Foundation
 actor SpyCatalog: MediaCatalog {
     struct SearchCall: Equatable {
         let query: String
+        var kind: MediaKind? = nil
         let page: Int
     }
 
@@ -30,9 +31,9 @@ actor SpyCatalog: MediaCatalog {
         self.stub = stub
     }
 
-    func search(query: String, page: Int) async throws -> SearchPage {
-        searches.append(SearchCall(query: query, page: page))
-        return try await stub.search(query: query, page: page)
+    func search(query: String, kind: MediaKind?, page: Int) async throws -> SearchPage {
+        searches.append(SearchCall(query: query, kind: kind, page: page))
+        return try await stub.search(query: query, kind: kind, page: page)
     }
 
     func detail(for id: MediaID) async throws -> MediaDetail {

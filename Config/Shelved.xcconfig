@@ -1,0 +1,7 @@
+// Build settings for the Shelved app target (Debug and Release).
+//
+// Secrets go in Secrets.xcconfig next to this file. It's git-ignored, so
+// keys never reach the repo. Create it by copying Secrets.example.xcconfig.
+// `#include?` (with the ?) keeps the build working when it doesn't exist:
+// TMDB features then show a "not configured" message instead of failing to build.
+#include? "Secrets.xcconfig"

@@ -18,7 +18,7 @@ struct SearchViewModelTests {
         let viewModel = SearchViewModel(catalog: StubCatalog(), debounce: .zero)
         viewModel.query = "   "
 
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         #expect(viewModel.state.isIdle)
     }
@@ -28,7 +28,7 @@ struct SearchViewModelTests {
         let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
         viewModel.query = "dune"
 
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         #expect(viewModel.state.value?.map(\.title) == ["A", "B"])
         #expect(viewModel.hasMorePages)
@@ -41,7 +41,7 @@ struct SearchViewModelTests {
         ])
         let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
         viewModel.query = "dune"
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         await viewModel.loadNextPage()
 
@@ -54,7 +54,7 @@ struct SearchViewModelTests {
         let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
         viewModel.query = "dune"
 
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         #expect(viewModel.state.isFailed)
     }
@@ -63,10 +63,10 @@ struct SearchViewModelTests {
         let catalog = StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)])
         let viewModel = SearchViewModel(catalog: catalog, debounce: .zero)
         viewModel.query = "dune"
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         viewModel.query = ""
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         #expect(viewModel.state.isIdle)
     }
@@ -80,10 +80,10 @@ struct SearchViewModelTests {
         let viewModel = SearchViewModel(catalog: spy, debounce: .milliseconds(50))
 
         viewModel.query = "du"
-        let firstKeystroke = Task { await viewModel.queryChanged() }
+        let firstKeystroke = Task { await viewModel.searchChanged() }
         firstKeystroke.cancel()
         viewModel.query = "dune"
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
         await firstKeystroke.value
 
         #expect(await spy.searches == [SpyCatalog.SearchCall(query: "dune", page: 1)])
@@ -96,7 +96,7 @@ struct SearchViewModelTests {
         ]))
         let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
         viewModel.query = "dune"
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         await viewModel.loadNextPage()
         await viewModel.loadNextPage()   // no more pages: must not call again
@@ -110,10 +110,24 @@ struct SearchViewModelTests {
         let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
         let viewModel = SearchViewModel(catalog: spy, debounce: .zero)
         viewModel.query = "dune"
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
-        await viewModel.queryChanged()
+        await viewModel.searchChanged()
 
         #expect(await spy.searches.count == 1)
+    }
+
+    /// A scope tap searches straight away with the new kind: no debounce.
+    @Test func changingScopeSearchesThatKind() async {
+        let spy = SpyCatalog(StubCatalog(pages: [1: SearchPage(items: [item("A")], hasMore: false)]))
+        let viewModel = SearchViewModel(catalog: spy, debounce: .seconds(60))
+        viewModel.query = "arrival"
+        viewModel.scope = .films
+        await viewModel.retry()                 // results for "arrival" in Films, skipping the debounce
+
+        viewModel.scope = .shows
+        await viewModel.searchChanged()         // would hang for 60s if it debounced
+
+        #expect(await spy.searches.map(\.kind) == [.film, .show])
     }
 }

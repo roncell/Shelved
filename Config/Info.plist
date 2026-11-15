@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Filled from Secrets.xcconfig at build time; empty when it's missing. -->
+	<key>TMDBReadAccessToken</key>
+	<string>$(TMDB_READ_ACCESS_TOKEN)</string>
+</dict>
+</plist>

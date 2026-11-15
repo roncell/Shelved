@@ -7,6 +7,9 @@ extension Error {
         if let libraryError = self as? LibraryError {
             return libraryError.message
         }
+        if let catalogError = self as? CatalogError {
+            return catalogError.message
+        }
         if let urlError = self as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:
@@ -17,8 +20,13 @@ extension Error {
                 break
             }
         }
-        if case NetworkError.httpStatus(let code)? = self as? NetworkError, code >= 500 {
-            return String(localized: "Open Library is having trouble right now. Try again in a bit.")
+        if case NetworkError.httpStatus(let code)? = self as? NetworkError {
+            if code == 401 {
+                return String(localized: "The catalog didn't accept the API token. Check Secrets.xcconfig.")
+            }
+            if code >= 500 {
+                return String(localized: "The catalog is having trouble right now. Try again in a bit.")
+            }
         }
         return String(localized: "Something went wrong. Try again.")
     }

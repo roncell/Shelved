@@ -12,9 +12,15 @@ extension Dependencies {
         return live()
     }
 
-    /// The real thing: Open Library over the network, the library on disk.
+    /// The real thing: Open Library and TMDB over the network, the library on disk.
+    /// Without a TMDB token, books still work and films/shows explain why they don't.
     static func live() -> Dependencies {
-        Dependencies(catalog: OpenLibraryCatalog(), library: SwiftDataLibraryRepository.onDisk())
+        let tmdb: any MediaCatalog = AppSecrets.tmdbReadAccessToken().map { TMDBCatalog(readAccessToken: $0) }
+            ?? UnavailableCatalog(.notConfigured)
+        return Dependencies(
+            catalog: CombinedCatalog(openLibrary: OpenLibraryCatalog(), tmdb: tmdb),
+            library: SwiftDataLibraryRepository.onDisk()
+        )
     }
 
     #if DEBUG

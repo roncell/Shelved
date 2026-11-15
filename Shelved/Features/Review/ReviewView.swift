@@ -41,7 +41,7 @@ struct ReviewView: View {
             }
 
         case .loaded(let item):
-            form(title: item.media.title)
+            form(media: item.media)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
@@ -55,10 +55,10 @@ struct ReviewView: View {
         }
     }
 
-    private func form(title: String) -> some View {
+    private func form(media: MediaItem) -> some View {
         Form {
             Section {
-                Text(title).font(.headline)
+                Text(media.title).font(.headline)
             }
 
             Section("Rating") {
@@ -71,12 +71,24 @@ struct ReviewView: View {
                 }
             }
 
-            Section("Progress") {
-                LabeledContent("Current page") {
-                    numberField("Page", value: $viewModel.log.progress)
+            // Films are watched in one go: no progress to log.
+            if media.kind == .show {
+                Section("Progress") {
+                    LabeledContent("Current episode") {
+                        numberField("Episode", value: $viewModel.log.progress)
+                    }
+                    LabeledContent("Total episodes") {
+                        numberField("Episodes", value: $viewModel.log.progressTotal)
+                    }
                 }
-                LabeledContent("Total pages") {
-                    numberField("Pages", value: $viewModel.log.progressTotal)
+            } else if media.kind.tracksProgress {
+                Section("Progress") {
+                    LabeledContent("Current page") {
+                        numberField("Page", value: $viewModel.log.progress)
+                    }
+                    LabeledContent("Total pages") {
+                        numberField("Pages", value: $viewModel.log.progressTotal)
+                    }
                 }
             }
 

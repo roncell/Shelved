@@ -14,7 +14,8 @@ nonisolated struct OpenLibraryCatalog: MediaCatalog {
         self.client = client
     }
 
-    func search(query: String, page: Int) async throws -> SearchPage {
+    func search(query: String, kind: MediaKind?, page: Int) async throws -> SearchPage {
+        guard kind == nil || kind == .book else { return SearchPage(items: [], hasMore: false) }
         let response = try await client.send(
             OpenLibraryAPI.search(query: query, page: page, limit: Self.pageSize)
         )
@@ -29,6 +30,8 @@ nonisolated struct OpenLibraryCatalog: MediaCatalog {
             // Use the ID the record actually lives at, so anything saved from
             // this screen (Phase 4: a library entry) stores the canonical one.
             return OpenLibraryMapper.detail(from: work, id: .openLibraryWork(canonicalID), creators: creators)
+        case .tmdbFilm, .tmdbShow:
+            throw CatalogError.unsupportedID
         }
     }
 
@@ -37,6 +40,8 @@ nonisolated struct OpenLibraryCatalog: MediaCatalog {
         case .openLibraryAuthor(let authorID):
             let (canonicalID, author) = try await fetchFollowingRedirects(id: authorID, endpoint: OpenLibraryAPI.author(id:))
             return OpenLibraryMapper.creatorDetail(from: author, authorID: canonicalID)
+        case .tmdbPerson:
+            throw CatalogError.unsupportedID
         }
     }
 
@@ -47,6 +52,8 @@ nonisolated struct OpenLibraryCatalog: MediaCatalog {
                 OpenLibraryAPI.works(byAuthor: authorID, page: page, limit: Self.pageSize)
             )
             return Self.page(from: response)
+        case .tmdbPerson:
+            throw CatalogError.unsupportedID
         }
     }
 

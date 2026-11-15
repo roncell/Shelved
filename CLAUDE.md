@@ -63,8 +63,8 @@ Keep the domain independent of any API's JSON shape. Map DTOs → domain models 
 
 ```swift
 enum MediaKind: String, Codable { case book, film, show }
-enum MediaID   { case openLibraryWork(String) }      // + .tmdb(MediaKind, Int) in Phase 6
-enum CreatorID { case openLibraryAuthor(String) }
+enum MediaID   { case openLibraryWork(String), tmdbFilm(Int), tmdbShow(Int) }
+enum CreatorID { case openLibraryAuthor(String), tmdbPerson(Int) }
 
 struct MediaItem {      // search results / lists
     let id: MediaID, kind: MediaKind, title: String
@@ -78,11 +78,13 @@ struct CreatorSummary { let id: CreatorID; let name: String }
 struct SearchPage { let items: [MediaItem]; let hasMore: Bool }
 
 protocol MediaCatalog {   // Data/ — what ViewModels depend on
-    func search(query: String, page: Int) async throws -> SearchPage
+    func search(query: String, kind: MediaKind?, page: Int) async throws -> SearchPage
     func detail(for id: MediaID) async throws -> MediaDetail
+    func creator(for id: CreatorID) async throws -> CreatorDetail
+    func works(by id: CreatorID, page: Int) async throws -> SearchPage
 }
-// OpenLibraryCatalog (Networking/OpenLibrary) is the real implementation;
-// PreviewCatalog / StubCatalog are fakes for previews and tests.
+// OpenLibraryCatalog and TMDBCatalog are the real sources; CombinedCatalog
+// (Data/) routes between them. PreviewCatalog / StubCatalog are fakes.
 
 // Persisted (SwiftData @Model)
 LibraryEntry  — mediaID, shelf, rating, review, progress, startedAt, finishedAt
@@ -212,10 +214,10 @@ Goal: searching "game of thrones" offers the whole *A Song of Ice and Fire* seri
 - **Learn:** adding a third data source behind a protocol, joining two APIs by ID, caching, designing UI that degrades gracefully when data is missing
 
 ### Phase 6 — Films & TV (TMDB)
-- [ ] TMDB client behind the same search/detail protocols
-- [ ] Unified search across sources, with kind filters
-- [ ] Creator screen supports directors/actors
-- [ ] Secure API key handling
+- [x] TMDB client behind the same search/detail protocols
+- [x] Unified search across sources, with kind filters
+- [x] Creator screen supports directors/actors
+- [x] Secure API key handling
 - **Learn:** whether the abstraction holds up. If adding a second source hurts, refactor and note why.
 
 ### Phase 7 — Modularization
@@ -277,3 +279,9 @@ Record notable architecture decisions here as the project evolves.
 | 2026-11-14 | `SwiftDataLibraryRepository.shared` removed; `Dependencies.live()` creates the one on-disk repository | No global left for a preview or test to reach by accident |
 | 2026-11-14 | UI tests launch with `-ui-testing` → `PreviewCatalog` + empty in-memory library (Debug builds only) | Offline, fast, clean slate per test. Cost: a small test hook in app code, compiled out of Release |
 | 2026-11-14 | Test doubles: stubs (`StubCatalog`, `FailingLibraryRepository`), a spy (`SpyCatalog`), fakes (in-memory repository, `PreviewCatalog`); no mocks | Spies keep assertions in the test where they're readable; mocks that verify themselves add a framework-like layer for little gain here |
+| 2026-11-14 | TMDB IDs are `.tmdbFilm(Int)` / `.tmdbShow(Int)`, not `.tmdb(MediaKind, Int)` | The planned shape allows `.tmdb(.book, 5)`; TMDB numbers films and shows separately anyway |
+| 2026-11-14 | `CombinedCatalog` (Data/) routes `detail`/`creator`/`works` by an exhaustive switch on the ID; `search` gains a `kind` filter | Screens stay single-source; a third source makes the compiler point at the routing. The abstraction held: only `search` needed a new parameter |
+| 2026-11-14 | Combined search merges sources round-robin and returns partial results if one source fails | Relevance scores from two APIs aren't comparable. Cost: in "All", films silently disappear when TMDB is down or has no token (the Films scope shows the error) |
+| 2026-11-14 | TMDB "Read Access Token" sent as a Bearer header, from untracked `Config/Secrets.xcconfig` → Info.plist → `AppSecrets` | Out of git and out of URLs/logs. Still readable from the shipped app; real protection needs a proxy server. No token → `UnavailableCatalog`, books keep working |
+| 2026-11-14 | A person's TMDB works come back as one page (combined credits, talk/news shows dropped) | TMDB doesn't page combined credits; a few hundred rows is fine for a lazy List |
+| 2026-11-14 | Shelf names per kind: "Want to Read" / "Want to Watch" next to an item, "Want to Read/Watch" in the Library tab; films don't log progress, shows log episodes | Shelves are shared across kinds; names come from code, so no migration |

@@ -13,10 +13,15 @@ struct SearchView: View {
     var body: some View {
         content
             .navigationTitle("Search")
-            .searchable(text: $viewModel.query, prompt: Text("Title or author"))
-            // Restarts (and cancels the previous run) every time the query changes.
-            .task(id: viewModel.query) {
-                await viewModel.queryChanged()
+            .searchable(text: $viewModel.query, prompt: Text("Title or name"))
+            .searchScopes($viewModel.scope) {
+                ForEach(SearchScope.allCases) { scope in
+                    Text(scope.title).tag(scope)
+                }
+            }
+            // Restarts (and cancels the previous run) every time the query or scope changes.
+            .task(id: viewModel.request) {
+                await viewModel.searchChanged()
             }
     }
 
@@ -25,9 +30,9 @@ struct SearchView: View {
         switch viewModel.state {
         case .idle:
             ContentUnavailableView(
-                "Search Open Library",
+                "Search",
                 systemImage: "magnifyingglass",
-                description: Text("Find books by title or author.")
+                description: Text("Find books, films and shows by title, author or director.")
             )
 
         case .loading:

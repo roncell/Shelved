@@ -39,7 +39,7 @@ struct ItemDetailView: View {
 
         case .failed(let error):
             ContentUnavailableView {
-                Label("Couldn't load this book", systemImage: "exclamationmark.triangle")
+                Label("Couldn't load details", systemImage: "exclamationmark.triangle")
             } description: {
                 Text(error.userMessage)
             } actions: {
@@ -82,7 +82,17 @@ private struct DetailContent: View {
                             Text(String(year))
                                 .foregroundStyle(.secondary)
                         }
+                        if let runtime = detail.runtimeMinutes {
+                            Text(Duration.seconds(runtime * 60), format: .units(allowed: [.hours, .minutes], width: .abbreviated))
+                                .foregroundStyle(.secondary)
+                        }
+                        if let seasons = detail.seasonCount {
+                            // `inflect: true` picks "1 season" / "2 seasons" by grammar rules.
+                            Text("^[\(seasons) season](inflect: true)")
+                                .foregroundStyle(.secondary)
+                        }
                         ShelfMenu(
+                            kind: detail.kind,
                             shelves: viewModel.shelves,
                             current: viewModel.libraryItem,
                             onSelect: { shelfID in Task { await viewModel.addToShelf(shelfID) } },
@@ -100,10 +110,24 @@ private struct DetailContent: View {
             }
 
             if !detail.creators.isEmpty {
-                Section("By") {
+                Section(detail.kind.creatorsHeading) {
                     ForEach(detail.creators) { creator in
                         Button(creator.name) { router.push(.creator(creator.id)) }
-                            .accessibilityHint(Text("Shows other works by this author"))
+                            .accessibilityHint(Text("Shows their other work"))
+                    }
+                }
+            }
+
+            if !detail.cast.isEmpty {
+                Section("Cast") {
+                    ForEach(detail.cast) { credit in
+                        Button {
+                            router.push(.creator(credit.id))
+                        } label: {
+                            LabeledContent(credit.person.name, value: credit.character ?? "")
+                        }
+                        .foregroundStyle(.primary)
+                        .accessibilityHint(Text("Shows their other work"))
                     }
                 }
             }
@@ -145,6 +169,16 @@ private struct DetailContent: View {
     let dependencies = Dependencies.preview()
     NavigationStack {
         ItemDetailView(id: PreviewCatalog.items[0].id, catalog: dependencies.catalog, library: dependencies.library)
+            .withRouteDestinations()
+    }
+    .environment(dependencies)
+    .environment(Router())
+}
+
+#Preview("Film") {
+    let dependencies = Dependencies.preview()
+    NavigationStack {
+        ItemDetailView(id: PreviewCatalog.film.id, catalog: dependencies.catalog, library: dependencies.library)
             .withRouteDestinations()
     }
     .environment(dependencies)

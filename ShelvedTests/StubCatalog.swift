@@ -16,7 +16,7 @@ nonisolated struct StubCatalog: MediaCatalog {
     /// Thrown only by `works(by:page:)`, to test a partial failure.
     var worksError: (any Error)?
 
-    func search(query: String, page: Int) async throws -> SearchPage {
+    func search(query: String, kind: MediaKind?, page: Int) async throws -> SearchPage {
         if let error { throw error }
         return pages[page] ?? SearchPage(items: [], hasMore: false)
     }

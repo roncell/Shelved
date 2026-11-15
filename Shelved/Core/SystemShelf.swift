@@ -3,17 +3,29 @@ import Foundation
 /// The built-in shelves every library has. Users can add their own on top.
 ///
 /// Display names come from here, not from the database, so they're
-/// localized and can change (e.g. "Want to Watch" in Phase 6) without a
-/// data migration. Only the raw value is stored.
+/// localized and can change without a data migration. Only the raw value
+/// is stored.
 nonisolated enum SystemShelf: String, CaseIterable, Sendable {
     case wantTo, inProgress, finished
 
-    var name: String {
-        switch self {
-        case .wantTo: String(localized: "Want to Read")
-        case .inProgress: String(localized: "In Progress")
-        case .finished: String(localized: "Finished")
+    /// The name in the Library tab, where shelves hold every kind of item.
+    var name: String { name(for: nil) }
+
+    /// The name next to one item: a film's menu says "Want to Watch".
+    func name(for kind: MediaKind?) -> String {
+        switch (self, kind) {
+        case (.wantTo, .book): String(localized: "Want to Read")
+        case (.wantTo, .film), (.wantTo, .show): String(localized: "Want to Watch")
+        case (.wantTo, nil): String(localized: "Want to Read/Watch")
+        case (.inProgress, _): String(localized: "In Progress")
+        case (.finished, _): String(localized: "Finished")
         }
+    }
+
+    /// Every name this shelf can appear under, so a custom shelf can't
+    /// reuse any of them.
+    var allNames: [String] {
+        [name(for: nil), name(for: .book), name(for: .film)]
     }
 
     var systemImage: String {

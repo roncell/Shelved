@@ -35,7 +35,17 @@ struct StorageKeyTests {
 
     /// Keys written by a future version (or corrupted) must not crash or
     /// turn into the wrong ID.
-    @Test(arguments: ["", "OL893414W", "openlibrary:work:", "tmdb:film:550", "openlibrary:author:OL1A"])
+    @Test(arguments: [MediaID.tmdbFilm(550), .tmdbShow(1399), .openLibraryWork("OL1W")])
+    func everyMediaIDRoundTrips(id: MediaID) {
+        #expect(MediaID(storageKey: id.storageKey) == id)
+    }
+
+    @Test func tmdbKeysAreReadable() {
+        #expect(MediaID.tmdbFilm(550).storageKey == "tmdb:film:550")
+        #expect(CreatorID(storageKey: "tmdb:person:287") == .tmdbPerson(287))
+    }
+
+    @Test(arguments: ["", "OL893414W", "openlibrary:work:", "tmdb:film:abc", "tmdb:movie:550", "openlibrary:author:OL1A"])
     func rejectsUnknownMediaKeys(key: String) {
         #expect(MediaID(storageKey: key) == nil)
     }

@@ -10,19 +10,13 @@ struct YourNotesSection: View {
     var body: some View {
         Section("Your Notes") {
             if log.isEmpty {
-                Button("Rate, review, or log progress", systemImage: "square.and.pencil", action: onEdit)
+                Button("Rate, review, or add notes", systemImage: "square.and.pencil", action: onEdit)
             } else {
                 if log.rating != nil {
                     RatingView(rating: log.rating, size: .body)
                 }
-                if let progress = log.progress {
-                    LabeledContent("Progress") {
-                        if let total = log.progressTotal {
-                            Text("Page \(progress) of \(total)")
-                        } else {
-                            Text("Page \(progress)")
-                        }
-                    }
+                if let progress = item.media.kind.progressText(log.progress, total: log.progressTotal) {
+                    LabeledContent("Progress", value: progress)
                 }
                 if let startedAt = log.startedAt {
                     LabeledContent("Started", value: startedAt, format: .dateTime.day().month().year())

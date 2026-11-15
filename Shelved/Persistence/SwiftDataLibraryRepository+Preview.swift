@@ -19,6 +19,7 @@ extension SwiftDataLibraryRepository {
                     for: PreviewCatalog.items[0].id
                 )
                 try repository.save(PreviewCatalog.items[1], to: wantTo.id)
+                try repository.save(PreviewCatalog.show, to: wantTo.id)
             }
             _ = try repository.createShelf(named: "Book Club")
             return repository

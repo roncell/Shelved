@@ -85,7 +85,7 @@ struct LibraryView: View {
                     if viewModel.customShelves.isEmpty {
                         Text("Tap + to make your own shelf, like “Book Club” or “Summer 2026”.")
                     } else {
-                        Text("Deleting a shelf moves its books to Want to Read.")
+                        Text("Deleting a shelf moves everything on it to Want to Read/Watch.")
                     }
                 }
             }

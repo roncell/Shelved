@@ -115,9 +115,10 @@ final class SwiftDataLibraryRepository: LibraryRepository {
         let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { throw LibraryError.emptyShelfName }
 
-        let existing = try shelves()
-        // Compare against display names, so "finished" clashes with the built-in "Finished".
-        guard !existing.contains(where: { $0.name.localizedCaseInsensitiveCompare(name) == .orderedSame }) else {
+        // Compare against display names, so "finished" clashes with the built-in
+        // "Finished", including every per-kind name ("Want to Watch").
+        let takenNames = try shelves().map(\.name) + SystemShelf.allCases.flatMap(\.allNames)
+        guard !takenNames.contains(where: { $0.localizedCaseInsensitiveCompare(name) == .orderedSame }) else {
             throw LibraryError.duplicateShelfName
         }
 

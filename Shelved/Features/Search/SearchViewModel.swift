@@ -10,6 +10,17 @@ import Observation
 final class SearchViewModel {
     /// Bound to the search field.
     var query = ""
+    /// Bound to the scope bar (All / Books / Films / Shows).
+    var scope: SearchScope = .all
+
+    /// Everything that defines a search. The view restarts its task when
+    /// this changes, so a new letter *or* a new scope starts a new search.
+    struct Request: Hashable {
+        let query: String
+        let scope: SearchScope
+    }
+
+    var request: Request { Request(query: query, scope: scope) }
 
     private(set) var state: Loadable<[MediaItem]> = .idle
     private(set) var hasMorePages = false
@@ -19,8 +30,9 @@ final class SearchViewModel {
     private let catalog: any MediaCatalog
     private let debounce: Duration
 
-    /// The query the current results belong to.
+    /// The query and scope the current results belong to.
     private var activeQuery = ""
+    private var activeScope: SearchScope = .all
     private var nextPage = 1
 
     /// `debounce` is injectable so tests can pass `.zero` and run instantly.
@@ -29,13 +41,13 @@ final class SearchViewModel {
         self.debounce = debounce
     }
 
-    /// Called by the view whenever `query` changes, via `.task(id: query)`.
+    /// Called by the view whenever `request` changes, via `.task(id:)`.
     ///
     /// **How debouncing works here:** each keystroke changes the task's id, so
     /// SwiftUI *cancels* the previous call and starts a new one. A cancelled
     /// `Task.sleep` throws, so only the call for the last keystroke survives
     /// the sleep and actually hits the network. No timers, no Combine.
-    func queryChanged() async {
+    func searchChanged() async {
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
             reset()
@@ -44,12 +56,16 @@ final class SearchViewModel {
 
         // `.task(id:)` also fires when the view *reappears* (e.g. coming back
         // from a detail screen). Don't throw away results and scroll position.
-        if text == activeQuery, case .loaded = state { return }
+        if text == activeQuery, scope == activeScope, case .loaded = state { return }
 
-        do {
-            try await Task.sleep(for: debounce)
-        } catch {
-            return  // cancelled: the user kept typing
+        // Debounce typing only. A scope tap is one deliberate choice, so
+        // waiting would just make the app feel slow.
+        if text != activeQuery {
+            do {
+                try await Task.sleep(for: debounce)
+            } catch {
+                return  // cancelled: the user kept typing
+            }
         }
         await runSearch(text)
     }
@@ -70,12 +86,13 @@ final class SearchViewModel {
         defer { isLoadingNextPage = false }
 
         let queryAtStart = activeQuery
+        let scopeAtStart = activeScope
         do {
-            let page = try await catalog.search(query: queryAtStart, page: nextPage)
+            let page = try await catalog.search(query: queryAtStart, kind: scopeAtStart.kind, page: nextPage)
 
             // While we were waiting, the user may have started a new search.
             // Appending this page now would mix results from two queries.
-            guard queryAtStart == activeQuery else { return }
+            guard queryAtStart == activeQuery, scopeAtStart == activeScope else { return }
 
             // Open Library occasionally repeats a work across pages. Duplicate
             // IDs confuse `ForEach`, so drop anything we already have.
@@ -93,22 +110,24 @@ final class SearchViewModel {
     }
 
     private func runSearch(_ text: String) async {
+        let searchScope = scope
         activeQuery = text
+        activeScope = searchScope
         nextPage = 1
         hasMorePages = false
         nextPageFailed = false
         state = .loading
 
         do {
-            let page = try await catalog.search(query: text, page: 1)
-            guard text == activeQuery else { return }
+            let page = try await catalog.search(query: text, kind: searchScope.kind, page: 1)
+            guard text == activeQuery, searchScope == activeScope else { return }
             state = .loaded(page.items)
             hasMorePages = page.hasMore
             nextPage = 2
         } catch {
             // Cancelled because a newer search took over or the view went away:
             // not an error worth showing.
-            guard !Task.isCancelled, text == activeQuery else { return }
+            guard !Task.isCancelled, text == activeQuery, searchScope == activeScope else { return }
             state = .failed(error)
         }
     }
